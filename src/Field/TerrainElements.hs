@@ -6,11 +6,11 @@ module Field.TerrainElements (
     evaluate
 ) where
 
-import Field.TerrainElementExpression
-import Field.TerrainElements.Basic
-import Field.TerrainElements.Exhibit
-import Field.TerrainElements.Habitat
-import Field.TerrainElements.Portal
+import           Field.TerrainElementExpression
+import           Field.TerrainElements.Basic
+import           Field.TerrainElements.Exhibit
+import           Field.TerrainElements.Habitat
+import           Field.TerrainElements.Portal
 
 evaluate (Basic tile orientation collides) = basic tile orientation collides
 evaluate (Habitat encounterRate riskExprs expr) = habitat encounterRate encounterRisks (evaluate expr)

@@ -77,7 +77,7 @@ data TileName = BedBottomLeft
               | TableW
               | TextBoxBottomLeft
               | TextBoxBottomMiddle
-              | TextBoxBottomRight 
+              | TextBoxBottomRight
               | TextBoxLeft
               | TextBoxRight
               | TextBoxTopLeft

@@ -2,14 +2,15 @@
 
 module Ppmn.Species.Ignoloof where
 
-import FRP.Yampa.Geometry
+import           Data.Point2
+import           Data.Vector2
 
-import Battle.MoveName
-import LabelName
-import Ppmn.Parameters
-import ProseName
-import SpriteName
-import SoundName
+import           Battle.MoveName
+import           LabelName
+import           Ppmn.Parameters
+import           ProseName
+import           SoundName
+import           SpriteName
 
 ignoloofBase = Ppmn {
     ppmnAccuracyStage = 0,

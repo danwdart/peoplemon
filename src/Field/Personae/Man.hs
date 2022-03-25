@@ -2,17 +2,17 @@
 
 module Field.Personae.Man (man) where
 
-import FRP.Yampa hiding (left, right)
-import System.Random
+import           FRP.Yampa               hiding (left, right)
+import           System.Random
 
-import Field.CardinalDirection
-import Field.Character
-import Field.Output
-import Field.PersonaName
-import Field.Terrain
-import Lightarrow
-import OfflineData
-import SpriteName
+import           Field.CardinalDirection
+import           Field.Character
+import           Field.Output
+import           Field.PersonaName
+import           Field.Terrain
+import           Lightarrow
+import           OfflineData
+import           SpriteName
 
 man (x0, y0) = Character {
     cAnimation = keep (gait (man (x0, y0))),

@@ -1,26 +1,28 @@
-{-# LANGUAGE Arrows, FlexibleContexts, OverloadedStrings #-}
+{-# LANGUAGE Arrows            #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Inventory.Items.Booch where
 
-import Control.Arrow
-import Control.Monad.Cont
-import Control.Monad.Reader
-import Control.Monad.State
-import qualified Data.Text as T
+import           Control.Arrow
+import           Control.Monad.Cont
+import           Control.Monad.Reader
+import           Control.Monad.State
+import qualified Data.Text            as T
 
-import Activity
-import Battle.Activity
-import Battle.Anchor
-import Battle.Parameters
-import Inventory.Parameters
-import LabelName
-import Lightarrow
-import OfflineData
-import Output
-import Ppmn.Output
-import Ppmn.Parameters
-import SoundName
-import StateClass
+import           Activity
+import           Battle.Activity
+import           Battle.Anchor
+import           Battle.Parameters
+import           Inventory.Parameters
+import           LabelName
+import           Lightarrow
+import           OfflineData
+import           Output
+import           Ppmn.Output
+import           Ppmn.Parameters
+import           SoundName
+import           StateClass
 
 booch = ItemParameters {
     itemBattleCont = battleEffect,
@@ -63,7 +65,7 @@ battleEffect = callCC (\cc -> do
     return (return ()))
 
 -- this should be in a State context of FieldParameters or BattleParameters, not itemUse, for the sake of embedding the narrations differently than the effect
-takeStock escape = do 
+takeStock escape = do
     obj <- gets actionObject
     name <- gets actionObjectName
     let initial = ppmnHitPoints obj

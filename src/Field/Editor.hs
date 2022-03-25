@@ -1,34 +1,38 @@
-{-# LANGUAGE Arrows, OverloadedStrings, ViewPatterns #-}
+{-# LANGUAGE Arrows            #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ViewPatterns      #-}
 
 module Field.Editor (fieldEditor) where
 
-import Data.Foldable
-import Data.List
-import qualified Data.Map as M
-import qualified Data.Text as T
-import FRP.Yampa
-import FRP.Yampa.Geometry
+import           Data.Foldable
+import           Data.List
+import qualified Data.Map                       as M
+import           Data.Maybe
+import qualified Data.Text                      as T
+import           FRP.Yampa
+import           Data.Point2
+import           Data.Vector2
 
-import Controls
-import ControlsMaps
-import Field.Character
-import Field.MapName
-import Field.Output
-import Field.Terrain
-import Field.TerrainElements
-import Field.TerrainElementExpression
-import LabelName
-import Lightarrow
-import Message
-import MusicName
-import OfflineData
-import Output
-import Ppmn.Species
-import SpriteName
-import TileName
+import           Controls
+import           ControlsMaps
+import           Field.Character
+import           Field.MapName
+import           Field.Output
+import           Field.Terrain
+import           Field.TerrainElementExpression
+import           Field.TerrainElements
+import           LabelName
+import           Lightarrow
+import           Message
+import           MusicName
+import           OfflineData
+import           Output
+import           Ppmn.Species
+import           SpriteName
+import           TileName
 
 data EditorSignal = EditorSignal {
-    esMouse :: (Int, Int),
+    esMouse   :: (Int, Int),
     esCommand :: Event Message,
     esXlation :: Vector2 Double,
     esTerrain :: Terrain
@@ -52,7 +56,7 @@ editor = selfAlternate closed selfKeeper (id, keep $ opened id)
             posDraw = drawRectangle 32 8 White (Point2 0 136) >.= drawTextScaled 0.5 (T.pack (show $ tileUnderPixel xlation x y)) (Point2 0 138)
             draw = mapDraw >.= toolDraw >.= mouseDraw >.= posDraw
         returnA -< ((draw, update), filterE isClose command `tag` update)
-    tools = [ basicTool, exhibitTool, portalTool, habitatTool, eraseTool, clearTool, backgroundTool ] ++ tools
+    tools = [ basicTool, exhibitTool, portalTool, habitatTool, eraseTool, clearTool, backgroundTool ] <> tools
 
 toolbox (t:ts) update0 = toolChanger `switch` id
   where
@@ -100,7 +104,7 @@ configuration shifter isOverBar (update, options0) = proc es -> do
 
 saver width height position = proc es -> do
     let save = hotClick (inBox width height position) es
-        path = maybe "last-edited.txt" id (lookup Field.MapName.LastEdited mapPaths)
+        path = fromMaybe "last-edited.txt" (lookup Field.MapName.LastEdited mapPaths)
     returnA -< event buttonUp (const ((>> writeFile path (show (esTerrain es))) . buttonDown)) save
   where
     buttonUp = drawSaveUp width height position
@@ -114,12 +118,12 @@ basicTool = tool' effector shifter (toEnum 0, toEnum 0, False)
             next = filterE isOptionNext command
             prev = filterE isOptionPrev command
         rec
-            tiles <- dHold tiles0 -< next `tag` (tail tiles) `lMerge` prev `tag` (tiles !! (length tileEnums - 1) : tiles)
+            tiles <- dHold tiles0 -< next `tag` tail tiles `lMerge` prev `tag` (tiles !! (length tileEnums - 1) : tiles)
         returnA -< (head tiles, orientation0, collides0)
       where
         tileEnums = [toEnum 0 ..]
-        allTiles = tileEnums ++ allTiles
-        tiles0 = [tile0 ..] ++ allTiles
+        allTiles = tileEnums <> allTiles
+        tiles0 = [tile0 ..] <> allTiles
     effector options0 update0 = proc es -> do
         options       <- quickShift options0  -< es
         (out, update) <- tileEffector' (stamper' make) update0 -< (options, es)
@@ -134,8 +138,8 @@ basicTool = tool' effector shifter (toEnum 0, toEnum 0, False)
                 unclick = filterE isUnclick (esCommand es)
             tUpdate    <- dragger1DClamp 0 (length tileEnums - 1) -< es { esCommand = tClick `lMerge` unclick }
             tIndex     <- iPre 0 -< tUpdate 0
-            orients  <- dHold orients0  -< oClick `tag` (tail orients)
-            collides <- dHold collides0 -< cClick `tag` (not collides)
+            orients  <- dHold orients0  -< oClick `tag` tail orients
+            collides <- dHold collides0 -< cClick `tag` not collides
             let settings = (tiles0 !! tIndex, head orients, collides)
         let display od = do
                 drawRectangle wt ht (Light Green) pt od
@@ -145,8 +149,8 @@ basicTool = tool' effector shifter (toEnum 0, toEnum 0, False)
         returnA -< (display, settings, update0)
       where
         tileEnums = [toEnum 0 ..]
-        tiles0 = [tile0 ..] ++ tileEnums ++ tiles0
-        orients0 = [orientation0 ..] ++ [toEnum 0 ..] ++ orients0
+        tiles0 = [tile0 ..] <> tileEnums <> tiles0
+        orients0 = [orientation0 ..] <> [toEnum 0 ..] <> orients0
 
 hotClick inPlace (EditorSignal (x, y) command _ _) = gate click (inPlace mouse')
   where
@@ -160,7 +164,7 @@ eraseTool = tool effector shifter ()
     draw (x, y) = drawTextScaled 0.5 "Erase" (Point2 (fromIntegral x) (fromIntegral y))
     shifter _ = constant (drawEditorText "Erase", ())
 
-habitatTool = tool effector shifter (0.25, ((0, 3), 1)) 
+habitatTool = tool effector shifter (0.25, ((0, 3), 1))
   where
     effector = tileEffector effect
     effect options = selector (update options) (drawSpriteCursor (Translucent White) Wifi)
@@ -174,7 +178,7 @@ habitatTool = tool effector shifter (0.25, ((0, 3), 1))
             level <- iPre level0 -< lUpdate level0
             pop   <- iPre pop0   -< pUpdate pop0
             let name = names !! nIndex
-                text = intercalate " " ["Habitat", show rate, show name, show level, show pop]
+                text = unwords ["Habitat", show rate, show name, show level, show pop]
                 (_ : (wr, hr, pr) : (wn, hn, pn) : (wl, hl, pl) : (wp, hp, pp) : _) = boxes text
                 rClick = hotClick (inBox wr hr pr) es
                 nClick = hotClick (inBox wn hn pn) es
@@ -203,14 +207,14 @@ portalTool = tool effector shifter (toEnum 0, (0, 0), False)
     shifter (destination0, position0, fade0) = proc es -> do
         rec
             pos  <- iPre position0    -< update position0
-            let text = intercalate " " ["Portal", show (head dests), show pos, show fade]
+            let text = unwords ["Portal", show (head dests), show pos, show fade]
                 (_ : (wd, hd, pd) : (wp, hp, pp) : (wf, hf, pf) : _) = boxes text
                 destClick = hotClick (inBox wd hd pd) es
                 posClick = hotClick (inBox wp hp pp) es
                 fadeClick = hotClick (inBox wf hf pf) es
                 unclick = filterE isUnclick (esCommand es)
             dests  <- dHold dests0 -< destClick `tag` tail dests
-            fade   <- dHold fade0  -< fadeClick `tag` (not fade)
+            fade   <- dHold fade0  -< fadeClick `tag` not fade
             update <- dragger2D    -< es { esCommand = posClick `lMerge` unclick }
         let settings = (head dests, pos, fade)
             display od = do
@@ -230,7 +234,7 @@ exhibitTool = tool effector shifter (toEnum 0, toEnum 0)
     cursor = drawTileCursor (Translucent White) TextBoxTopLeft
     shifter (direction0, prose0) = proc es -> do
         rec
-            let text = intercalate " " ["Exhibit", show (head dirs), show (head proses)]
+            let text = unwords ["Exhibit", show (head dirs), show (head proses)]
                 (_ : (wd, hd, pd) : (wp, hp, pp) : _) = boxes text
                 dirClick = hotClick (inBox wd hd pd) es
                 proseClick = hotClick (inBox wp hp pp) es
@@ -249,7 +253,7 @@ exhibitTool = tool effector shifter (toEnum 0, toEnum 0)
 dragger2D = selfAlternate listening dragging id
   where
     getClick (EditorSignal (x, y) command _ _) = filterE isClick command `tag` (x, y)
-    listening update = (constant update) &&& (arr $ (`attach` update) . getClick)
+    listening update = constant update &&& arr $ (`attach` update) . getClick
     dragging ((x, y), update0) = proc es -> do
         let (x', y') = esMouse es
             update = (\(px, py) -> (px + x' - x, py + y' - y)) . update0
@@ -261,7 +265,7 @@ dragger1DMin minimum = dragger1D (max minimum)
 dragger1D modify = selfAlternate listening dragging id
   where
     getClick (EditorSignal (x, y) command _ _) = filterE isClick command `tag` (x, y)
-    listening update = (constant update) &&& (arr $ (`attach` update) . getClick)
+    listening update = constant update &&& arr $ (`attach` update) . getClick
     dragging ((x, _), update0) = proc es -> do
         let (x', _) = esMouse es
             update = (\px -> modify $ px + x' - x) . update0
@@ -271,7 +275,7 @@ dragger1D modify = selfAlternate listening dragging id
 clearTool = tool clearEffector clearShifter ()
   where
     effect = selector (\_ _ _ -> empty) (drawSpriteCursor (Translucent White) ElectrodeFront)
-    clearEffector = tileEffector (const $ effect)
+    clearEffector = tileEffector (const effect)
     clearShifter options = constant (drawEditorText "Clear all", options)
 
 backgroundTool = tool effector shifter 0
@@ -298,7 +302,7 @@ tileEffector' updater update0 = proc (options, EditorSignal (x, y) command xlate
         tileDraw  = withXlation xlate (drawRectangle 16 16 (Translucent (Dark Green))) tilePos
         select    = filterE isClick command `tag` TerrainElementSelect x' y'
     (toolDraw, update) <- updater update0 -< (options, select, terrain)
-    returnA -< (tileDraw >.= (toolDraw (x, y)), update)
+    returnA -< (tileDraw >.= toolDraw (x, y), update)
 
 tileEffector updater options update0 = proc (EditorSignal (x, y) command xlate terrain) -> do
     let (x', y')  = tileUnderPixel xlate x y
@@ -306,7 +310,7 @@ tileEffector updater options update0 = proc (EditorSignal (x, y) command xlate t
         tileDraw  = withXlation xlate (drawRectangle 16 16 (Translucent (Dark Green))) tilePos
         select    = filterE isClick command `tag` TerrainElementSelect x' y'
     (toolDraw, update) <- updater options update0 -< (select, terrain)
-    returnA -< (tileDraw >.= (toolDraw (x, y)), update)
+    returnA -< (tileDraw >.= toolDraw (x, y), update)
 
 stamper' make = selector' make setElem drawTerrainCursor
 
@@ -314,8 +318,8 @@ stamper te = selector (setElem te) (drawTerrainCursor te)
 
 selector' make elemUpdate draw update0 = proc (options, command, _) -> do
     let te = make options
-        select (TerrainElementSelect x y) = Just $ (elemUpdate te x y .)
-        select _ = Nothing
+        select (TerrainElementSelect x y) = Just (elemUpdate te x y .)
+        select _                          = Nothing
     update <- accumHold update0 -< mapFilterE select command
     returnA -< (draw te, update)
 
@@ -323,8 +327,8 @@ selector elemUpdate draw update0 = proc (command, _) -> do
     update <- accumHold update0 -< mapFilterE select command
     returnA -< (draw, update)
   where
-    select (TerrainElementSelect x y) = Just $ (elemUpdate x y .)
-    select _ = Nothing
+    select (TerrainElementSelect x y) = Just (elemUpdate x y .)
+    select _                          = Nothing
 
 isClick EditorClick = True
 isClick _           = False
@@ -362,7 +366,7 @@ drawTileCursor modulation tile (x, y) od = do
         offset = vector2 0.5 0.5
     drawTileExplicit modulation offset tile position Original od
 
-drawTerrainCursor (TerrainElement { teTile = (tile, orientation) }) (x, y) od = do
+drawTerrainCursor TerrainElement { teTile = (tile, orientation) } (x, y) od = do
     let texture = odGetTile od tile
         position = Point2 (fromIntegral x - 8 ) (fromIntegral y - 8)
         offset = vector2 0 0
@@ -379,8 +383,8 @@ drawSave bg position@(Point2 bx by) = snd $ foldl' addLetter (0, bg position) (T
 
 debugMark (teExpr -> (Basic _ _ True))  = drawRectangleFrame 16 16 (Translucent Magenta)
 debugMark (teExpr -> (Basic TileName.Blank _ _)) = drawRectangleFrame 16 16 (Translucent Blue)
-debugMark (teExpr -> (Portal _ _ _ _))  = drawRectangleFrame 16 16 (Translucent (Dark Cyan))
-debugMark (teExpr -> (Habitat _ _ _ ))  = drawRectangleFrame 16 16 (Translucent Red)
+debugMark (teExpr -> Portal {})  = drawRectangleFrame 16 16 (Translucent (Dark Cyan))
+debugMark (teExpr -> Habitat {})  = drawRectangleFrame 16 16 (Translucent Red)
 debugMark _                             = const nullOut
 
 drawDebugTerrain terrain xlation = foldl' (>.=) nullOut $ mapWithIndices (uncurry tiler) elements
@@ -391,7 +395,7 @@ drawDebugTerrain terrain xlation = foldl' (>.=) nullOut $ mapWithIndices (uncurr
 
 boxes = reverse . fst . foldl' addBox ([], 8) . widths
   where
-    addBox (bs, x) w = ((w, 4, (Point2 x 8)) : bs, x + w + 4)
+    addBox (bs, x) w = ((w, 4, Point2 x 8) : bs, x + w + 4)
     widths = map ((* 4.0) . fromIntegral . length) . words
 
 inBox width height (Point2 bx by) (Point2 x y) = inX && inY

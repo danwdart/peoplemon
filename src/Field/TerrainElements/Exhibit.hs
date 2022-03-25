@@ -2,17 +2,17 @@
 
 module Field.TerrainElements.Exhibit where
 
-import qualified Data.Map as M
-import FRP.Yampa
+import qualified Data.Map                       as M
+import           FRP.Yampa
 
-import Activity
-import Field.Parameters ()
-import Field.Terrain
-import Field.TerrainElementExpression as TEExpr
-import Message
-import StateClass
+import           Activity
+import           Field.Parameters               ()
+import           Field.Terrain
+import           Field.TerrainElementExpression as TEExpr
+import           Message
+import           StateClass
 
-exhibit directions te@(TerrainElement { teExpr = Exhibit directions' expr }) = te {
+exhibit directions te@TerrainElement { teExpr = Exhibit directions' expr } = te {
     teExpr = Exhibit directions'' expr,
     teInspect = inspection directions''
 }
@@ -24,4 +24,4 @@ exhibit directions te = te {
     teInspect = inspection directions
 }
 
-inspection directions d = return $ maybeToEvent (M.lookup d directions >>= (return . FieldAction . (>>= stdWait) . stdLecture . prose))
+inspection directions d = return $ maybeToEvent (M.lookup d directions Data.Functor.<&> (FieldAction . (>>= stdWait) . stdLecture . prose))

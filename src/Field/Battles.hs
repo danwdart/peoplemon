@@ -1,36 +1,38 @@
-{-# LANGUAGE FlexibleContexts, NoMonomorphismRestriction, OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts          #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE OverloadedStrings         #-}
 
 module Field.Battles where
 
-import Control.Monad.Cont
-import Control.Monad.RWS
-import Data.Bool
-import qualified Data.Map as M
-import FRP.Yampa
+import           Control.Monad.Cont
+import           Control.Monad.RWS
+import           Data.Bool
+import qualified Data.Map               as M
+import           FRP.Yampa
 
-import Activity
-import Battle.Activity
-import Battle.Anchor
-import Battle.Vignette
-import Battle.Parameters
-import Ending
+import           Activity
+import           Battle.Activity
+import           Battle.Anchor
+import           Battle.Parameters
+import           Battle.Vignette
+import           Ending
 import qualified Field.Anchor
-import Field.Character
-import Field.MapName
-import Field.Parameters
-import Inventory.Parameters
-import Inventory.Items.Booch
-import Inventory.Items.PPhone
-import LabelName
-import Lightarrow
-import MusicName
-import OfflineData
-import Output
-import Ppmn.Parameters
-import Ppmn.Species
-import ProseName
-import SpriteName
-import StateClass
+import           Field.Character
+import           Field.MapName
+import           Field.Parameters
+import           Inventory.Items.Booch
+import           Inventory.Items.PPhone
+import           Inventory.Parameters
+import           LabelName
+import           Lightarrow
+import           MusicName
+import           OfflineData
+import           Output
+import           Ppmn.Parameters
+import           Ppmn.Species
+import           ProseName
+import           SpriteName
+import           StateClass
 
 wildBattle enemy = do
     momentary $ playMusicWithIntro WildBattleIntro 12.38 WildBattleTheme
@@ -44,7 +46,7 @@ wildBattle enemy = do
             n1 <- stdLecture (prose AndDontItFeelGood)
             stdWait n1
             n2 <- pickUpItem booch 1
-            local (`compEmbed` embedArr (n2 >.=)) $ exitFade
+            local (`compEmbed` embedArr (n2 >.=)) exitFade
     }
     (bp', _) <- lift $ execRWST k (Embedding id) bp
     let ppmn' = map resetStages (bpPpmn bp')
@@ -52,7 +54,7 @@ wildBattle enemy = do
         fpPpmn = ppmn',
         fpItems = bpItems bp',
         fpCounters = bpCounters bp',
-        fpRandomGenerator = bpRandomGenerator bp' 
+        fpRandomGenerator = bpRandomGenerator bp'
         })
     fadeFrom White 0.5
   where
@@ -72,7 +74,7 @@ trainerBattle trainerLabel trainerSprite trainerProse enemies = do
                 momentary (playMusicWithIntro VictoryIntro 1.1 VictoryTheme)
                 stdLecture (\s -> sentence '!' [fpAvatarName fp, prose Defeated s, label trainerLabel s]) >>= arrowWait
                 embed <- trainerBattleDenouement
-                local (const embed) $ exitFade
+                local (const embed) exitFade
         }
     (bp', _) <- lift $ execRWST k (Embedding id) bp
     let ppmn' = map resetStages (bpPpmn bp')
@@ -120,10 +122,10 @@ makeBattleParameters fp = BattleParameters {
     bpItems = fpItems fp,
     bpLose = restart fp,
     bpOfflineData = fpOfflineData fp,
-    bpPpmn = map battlePpmnFriend ppmn,
+    bpPpmn = fmap battlePpmnFriend ppmn,
     bpRandomGenerator = fpRandomGenerator fp,
-    bpRun = return (),
-    bpWin = return ()
+    bpRun = pure (),
+    bpWin = pure ()
 }
   where
     ppmn = fpPpmn fp
@@ -136,7 +138,7 @@ disablePPhone = bool <$> id <*> disable <*> isPPhone
   where
     disable item = item { itemBattleCont = do
         modify (\iu -> iu { iuParams = itemSubtract (iuParams iu) })
-        return totalFailure }
+        pure totalFailure }
 
 enablePPhone = bool <$> id <*> enable <*> isPPhone
   where
@@ -145,25 +147,25 @@ enablePPhone = bool <$> id <*> enable <*> isPPhone
 restart fp = do
     narration <- stdLecture (prose YouFinallyLostYourMind)
     stdWait narration
-    fadeTo Black 1.0 
+    fadeTo Black 1.0
     over 1.0 $ constant (clearScreen Black)
     let fp' = fp {
-        fpLocale = (fpWorld fp) M.! FamilyHouse1F,
+        fpLocale = fpWorld fp M.! FamilyHouse1F,
         fpMap = FamilyHouse1F,
         fpAvatar = (fpAvatar fp) { cPosition = (0, 0) }
     }
     lift $ execRWST (Field.Anchor.anchor Field.Anchor.explore) (Embedding id) fp'
-    return ()
+    pure ()
 
 wildBattleWarning = do
-    fadeTo (Translucent White) 0.05 >> fadeFrom (Translucent White) 0.05 
-    fadeTo (Translucent Black) 0.05 >> fadeFrom (Translucent Black) 0.05 
-    fadeTo (Translucent White) 0.05 >> fadeFrom (Translucent White) 0.05 
-    fadeTo (Translucent Black) 0.05 >> fadeFrom (Translucent Black) 0.05 
-    fadeTo (Translucent White) 0.05 >> fadeFrom (Translucent White) 0.05 
-    fadeTo (Translucent Black) 0.05 >> fadeFrom (Translucent Black) 0.05 
-    fadeTo (Translucent White) 0.05 >> fadeFrom (Translucent White) 0.05 
-    fadeTo (Translucent Black) 0.05 >> fadeFrom (Translucent Black) 0.05 
-    fadeTo (Translucent White) 0.05 >> fadeFrom (Translucent White) 0.05 
-    fadeTo (Translucent Black) 0.05 >> fadeFrom (Translucent Black) 0.05 
+    fadeTo (Translucent White) 0.05 >> fadeFrom (Translucent White) 0.05
+    fadeTo (Translucent Black) 0.05 >> fadeFrom (Translucent Black) 0.05
+    fadeTo (Translucent White) 0.05 >> fadeFrom (Translucent White) 0.05
+    fadeTo (Translucent Black) 0.05 >> fadeFrom (Translucent Black) 0.05
+    fadeTo (Translucent White) 0.05 >> fadeFrom (Translucent White) 0.05
+    fadeTo (Translucent Black) 0.05 >> fadeFrom (Translucent Black) 0.05
+    fadeTo (Translucent White) 0.05 >> fadeFrom (Translucent White) 0.05
+    fadeTo (Translucent Black) 0.05 >> fadeFrom (Translucent Black) 0.05
+    fadeTo (Translucent White) 0.05 >> fadeFrom (Translucent White) 0.05
+    fadeTo (Translucent Black) 0.05 >> fadeFrom (Translucent Black) 0.05
     fadeTo White 0.5

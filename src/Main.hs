@@ -2,19 +2,19 @@
 
 module Main where
 
-import Control.Monad
-import Data.IORef
-import Data.Time.Clock.System
-import FRP.Yampa
-import SDL hiding (copy, Stereo)
-import SDL.Mixer hiding (quit)
-import System.Exit
-import System.IO
-import System.Random
+import           Control.Monad
+import           Data.IORef
+import           Data.Time.Clock.System
+import           FRP.Yampa
+import           SDL                    hiding (Stereo, copy)
+import           SDL.Mixer              hiding (quit)
+import           System.Exit
+import           System.IO
+import           System.Random
 
-import MainAutomaton
-import Controls
-import OfflineData
+import           Controls
+import           MainAutomaton
+import           OfflineData
 
 desiredAudioSpec = Audio {
     audioFrequency = 44100,
@@ -23,7 +23,7 @@ desiredAudioSpec = Audio {
 }
 
 screenScale = V2 4 4
-windowDimensions = fmap round $ (*) <$> screenScale <*> V2 160 144 
+windowDimensions = fmap round $ (*) <$> screenScale <*> V2 160 144
 
 floatSeconds tS = fromIntegral (systemSeconds tS) + fromIntegral (systemNanoseconds tS) / 1000000000
 
@@ -36,7 +36,7 @@ main = do
     rendererDrawBlendMode renderer $= BlendAlphaBlend
     setMouseLocationMode AbsoluteLocation
     cursorVisible $= False
-    openAudio desiredAudioSpec 1024 
+    openAudio desiredAudioSpec 1024
     rgen <- getStdGen
 
     od <- loadOfflineData renderer
@@ -63,7 +63,7 @@ input tRef _ = do
     tS <- getSystemTime
     let seconds'    = floatSeconds tS
         dt          = min 0.016 (seconds' - seconds)
-        scaledMouse = flip div <$> (P $ fmap round screenScale) <*> mouse
+        scaledMouse = flip div <$> P (fmap round screenScale) <*> mouse
         controls    = readControls keyHeld buttonHeld scaledMouse
         dt'                                   -- memory occupancy plummets if
             | keyHeld Scancode0 = 0           -- this feature is disabled
@@ -73,9 +73,9 @@ input tRef _ = do
     writeIORef tRef seconds'
     return (realToFrac dt, Just controls)
 
-isQuit QuitEvent              = True
-isQuit (WindowClosedEvent _)  = True
-isQuit _                      = False
+isQuit QuitEvent             = True
+isQuit (WindowClosedEvent _) = True
+isQuit _                     = False
 
 output fpsRef od _ action = do
     rendererDrawColor renderer $= V4 255 255 255 255
@@ -90,6 +90,6 @@ output fpsRef od _ action = do
     putStr $ "\r" ++ show (1 / mean)
     hFlush stdout
     writeIORef fpsRef samples'
-    return False 
+    return False
   where
     renderer = odRenderer od

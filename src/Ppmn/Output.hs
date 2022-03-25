@@ -16,23 +16,24 @@ module Ppmn.Output (
     statusSummary
 ) where
 
-import qualified Data.Text as T
-import FRP.Yampa.Geometry
+import                qualified Data.Text          as T
+import           Data.Point2
+import           Data.Vector2
 
-import {-# SOURCE #-} Battle.Moves (friendMoveByName)
-import Battle.Parameters
-import LabelName
-import OfflineData
-import Output
-import Output.Window
-import Ppmn.Parameters
-import SpriteName
-import TextUtil
-import TileName
+import {-# SOURCE #-}           Battle.Moves       (friendMoveByName)
+import                          Battle.Parameters
+import                          LabelName
+import                          OfflineData
+import                          Output
+import                          Output.Window
+import                          Ppmn.Parameters
+import                          SpriteName
+import                          TextUtil
+import                          TileName
 
 drawElement = drawElementPack . ppmnElement
 
-drawElementPack (OneElement e) position = drawOneElement e position
+drawElementPack (OneElement e) position      = drawOneElement e position
 drawElementPack (TwoElements e1 e2) position = drawTwoElements e1 e2 position
 
 drawOneElement e position od = do
@@ -69,12 +70,12 @@ drawParams ppmn position = drawWindow position (5, 5) >.= attack >.= defense >.=
 
 drawMoves ppmn position = drawWindow position (10, 5) >.= draw
   where
-    draw = foldl (>.=) nullOut $ map (uncurry drawMove) (zip movesPadded offsets)
+    draw = foldl (>.=) nullOut $ zipWith (curry (uncurry drawMove)) movesPadded offsets
     moves = map (mpName . friendMoveByName) (ppmnMoves ppmn)
     movesPadded = moves ++ replicate (4 - length moves) Hyphen
     offsets = [ vector2 16 (8 + fromIntegral n * 16) | n <- [0 .. length movesPadded - 1] ]
     drawMove name offset = drawLabel name (position .+^ offset)
-    
+
 drawHpBar position maxHp 0   = drawRectangle 0 2 (Dark (Dark White)) position
 drawHpBar position maxHp hp  = drawRectangle (max 1 $ 46 * max 0 hp / maxHp) 2 (Dark (Dark White)) position
 
@@ -103,13 +104,13 @@ drawHpMeter p position od = do
   where
     hp = ppmnHitPoints p
     maxHp = ppmnMaxHitPoints p
-    labelPos = vector2 (-16) (-13) 
-    barPos = vector2 1 0 
-    borderPosL = vector2 0 (-13) 
-    borderPosM = vector2 16 (-13) 
-    borderPosR = vector2 32 (-13) 
+    labelPos = vector2 (-16) (-13)
+    barPos = vector2 1 0
+    borderPosL = vector2 0 (-13)
+    borderPosM = vector2 16 (-13)
+    borderPosR = vector2 32 (-13)
 
-drawHpNumerals p position = drawText t position
+drawHpNumerals p = drawText t
   where
     t = hp `T.append` "/" `T.append` maxHp
     hp = padIntWith ' ' 3 (round (ppmnHitPoints p))
@@ -117,24 +118,22 @@ drawHpNumerals p position = drawText t position
 
 hpSummary showNumerals position p od = do
     drawHpMeter p (position .+^ barPos) od
-    if showNumerals
-        then drawHpNumerals p (position .+^ numeralPos) od
-        else return ()
+    Control.Monad.when showNumerals $ drawHpNumerals p (position .+^ numeralPos) od
   where
     barPos = vector2 16 13
-    numeralPos = vector2 8 18 
+    numeralPos = vector2 8 18
 
 drawLevel p position od = do
     drawSprite LevelLabel position od
     drawText (T.pack $ show (ppmnLevel p)) (position .+^ numeralPos) od
   where
-    numeralPos = vector2 16 8 
+    numeralPos = vector2 16 8
 
 
 summaryArrow flip position = drawTiledBg position (5, 1) tiles
   where
     tiles = if flip then [(t, FlipX) | t <- reverse tileNames] else [(t, Original) | t <- tileNames]
-    tileNames = SummaryArrowBack : (replicate 3 SummaryArrowMiddle) ++ [SummaryArrowFront]
+    tileNames = SummaryArrowBack : replicate 3 SummaryArrowMiddle ++ [SummaryArrowFront]
 
 drawPpmn p = drawPpmnExplicit p (vector2 0 0)
 drawPpmnExplicit p v = drawSpriteExplicit Original 1.0 White v (ppmnSprite p) (ppmnPosition p)

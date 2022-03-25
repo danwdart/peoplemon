@@ -1,18 +1,19 @@
-{-# LANGUAGE Arrows, FlexibleContexts #-}
+{-# LANGUAGE Arrows           #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module Field.Locale where
 
-import Data.Foldable
-import FRP.Yampa
+import           Data.Foldable
+import           FRP.Yampa
 
-import Field.Activity
-import Field.Character
-import Field.Output
-import Field.Terrain
-import Lightarrow
-import Message
-import OfflineData
-import Output
+import           Field.Activity
+import           Field.Character
+import           Field.Output
+import           Field.Terrain
+import           Lightarrow
+import           Message
+import           OfflineData
+import           Output
 
 stdLocale characters music t0 = proc (avatar, news) -> do
     let  cnews   = filterE cValidNews news
@@ -24,16 +25,16 @@ stdLocale characters music t0 = proc (avatar, news) -> do
          report  = foldl' rMerge NoEvent cMsgs
          sound   = restartMusic news
     returnA -< ((draw, sound, t), report)
-  where  restartMusic (Event Restart)  = playRepeatingMusic music
-         restartMusic _                = nullOut
-         cValidNews AvatarTraverse     = False
-         cValidNews Restart            = False
-         cValidNews _                  = True
+  where  restartMusic (Event Restart) = playRepeatingMusic music
+         restartMusic _               = nullOut
+         cValidNews AvatarTraverse = False
+         cValidNews Restart        = False
+         cValidNews _              = True
 
 occupation :: [Character] -> Terrain -> Terrain
 occupation = foldl' ((. cOccupy) . (.)) id
 
-charactersDraw = (foldl' (>.=) nullOut .) . sequence . map drawCharacter
+charactersDraw = (foldl' (>.=) nullOut .) . mapM drawCharacter
 
 terrainDraw = drawTerrain
 
@@ -59,6 +60,6 @@ alertTrainer index (x, y) = terrainTrigger nullOut alert triggered (x, y)
 terrainTrigger out adjustment triggered (x, y) = initial `dSwitch` const final
   where
     initial = proc m -> do
-        let m' = mapFilterE triggered m 
+        let m' = mapFilterE triggered m
         returnA -< ((out, adjustElem adjustment x y, m'), m')
     final = constant (nullOut, id, NoEvent)

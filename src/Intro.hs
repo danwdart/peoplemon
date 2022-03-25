@@ -1,42 +1,44 @@
-{-# LANGUAGE FlexibleContexts, OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Intro (intro) where
 
-import Control.Monad.RWS
-import Control.Monad.Reader
-import qualified Data.Text as T
-import FRP.Yampa
-import FRP.Yampa.Geometry
+import           Control.Monad.RWS
+import           Control.Monad.Reader
+import qualified Data.Text            as T
+import           FRP.Yampa
+import           Data.Point2
+import           Data.Vector2
 
-import Activity
-import Controls
-import ControlsMaps
-import Field
-import LabelName
-import Lightarrow
-import Menu
-import MusicName
-import OfflineData
-import Output
-import ProseName
-import SoundName
-import SpriteName
-import StateClass
+import           Activity
+import           Controls
+import           ControlsMaps
+import           Field
+import           LabelName
+import           Lightarrow
+import           Menu
+import           MusicName
+import           OfflineData
+import           Output
+import           ProseName
+import           SoundName
+import           SpriteName
+import           StateClass
 
-intro :: OfflineData -> Swont Controls OfflineIO T.Text 
-intro od = fmap (\(x, _, ()) -> x) $ runRWST k (Embedding id) od
+intro :: OfflineData -> Swont Controls OfflineIO T.Text
+intro od = (\(x, _, ()) -> x) <$> runRWST k (Embedding id) od
   where
     k = do
         titleDrop
         titleShake
         titleScreen
         instructionScreen
-        local (const (embedArr (clearScreen Black >.=))) $ wakeup
-        local (const (embedArr (drawSprite Woke (Point2 54 34) >.=))) $ welcome
+        local (const (embedArr (clearScreen Black >.=))) wakeup
+        local (const (embedArr (drawSprite Woke (Point2 54 34) >.=))) welcome
         explanation
-        narration <- local (const (embedArr (drawSprite AvatarPortrait (Point2 54 34) >.=))) $ lookAtYou
+        narration <- local (const (embedArr (drawSprite AvatarPortrait (Point2 54 34) >.=))) lookAtYou
         over 0.25 $ arr (>.= narration) <<< slide (Point2 54 34) (Point2 80 34) 0.125 AvatarPortrait
-        name <- local (const (embedArr ((narration >.= drawSprite AvatarPortrait (Point2 80 34)) >.=))) $ pickName
+        name <- local (const (embedArr ((narration >.= drawSprite AvatarPortrait (Point2 80 34)) >.=))) pickName
         over 0.25 $ arr (>.= narration) <<< slide (Point2 80 34) (Point2 54 34) 0.125 AvatarPortrait
         narration <- local (const (embedArr (drawSprite AvatarPortrait (Point2 54 34) >.=))) $ letsGo (label name od)
         local (const (Embedding id)) $ enter narration
@@ -49,11 +51,11 @@ titleDrop = do  momentary $ playSound Drop
 
 titleShake = do  momentary $ draw (shake 0) >.= play
                  over 0.25 $ time >>> arr shake >>> arr draw
-    where  shake t  = Point2 20 (32 + 3 * 1 / (1 + 8 * t) * sin (32 * pi * t))
+    where  shake t  = Point2 20 (32 + 3 / (1 + 8 * t) * sin (32 * pi * t))
            draw     = drawSprite Logo --drawText "PEOPLEMON"
            play     = playSound Crash >.= restartRepeatingMusic TitleTheme
 
-titleScreen = do  stdWait initialDraw 
+titleScreen = do  stdWait initialDraw
                   momentary $ initialDraw >.= playSound SoundName.Accept
                   over 0.5 $ time >>> arr raise >>> arr drawTitle
   where  raise t      = Point2 20 (32 - 64 * t)
@@ -91,7 +93,7 @@ welcome = do
     arrowWait n1
     n2 <- stdLecture (prose MyNameIsWokeI)
     arrowWait n2
-    fadeTo White 0.5 
+    fadeTo White 0.5
 
 explanation = do
     n1 <- stdLecture (prose InThisWorldThereAre)
@@ -126,10 +128,9 @@ names = [ Jeff, Larry, Mark, Sergey, Steve ]
 letsGo name = do
     n1 <- stdLecture (\s -> sentence '!' ["Good,", name] `T.append` " " `T.append` prose IKnowIveHeardThat s)
     arrowWait n1
-    n2 <- stdLecture (prose ButPinchYourselfBitchYoure)
-    return n2
+    stdLecture (prose ButPinchYourselfBitchYoure)
 
 enter n2 = do
     over 1.0 $ arr (>.= n2) <<< slideStretch 1 0.45 (Point2 54 34) (Point2 60 52) 1.0 AvatarPortrait
-    over 0.5 $ constant (drawSprite AvatarFront ((origin .+^ screenCenterOffset) .+^ (vector2 0 (-8))) >.= n2)
+    over 0.5 $ constant (drawSprite AvatarFront ((origin .+^ screenCenterOffset) .+^ vector2 0 (-8)) >.= n2)
     over 0.5 $ constant (clearScreen White)

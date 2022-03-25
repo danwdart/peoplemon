@@ -9,16 +9,16 @@ module Field.Scripts (
     scriptByMap
 ) where
 
-import Field.Locale
-import Field.MapName
-import Field.Scripts.BossRoom
-import Field.Scripts.Courtyard
-import Field.Scripts.Ditfy
-import Field.Scripts.FamilyHouse1F
-import Field.Scripts.FamilyHouse2F
-import Field.Scripts.Hometown
-import Field.Scripts.WeWoke
-import MusicName
+import           Field.Locale
+import           Field.MapName
+import           Field.Scripts.BossRoom
+import           Field.Scripts.Courtyard
+import           Field.Scripts.Ditfy
+import           Field.Scripts.FamilyHouse1F
+import           Field.Scripts.FamilyHouse2F
+import           Field.Scripts.Hometown
+import           Field.Scripts.WeWoke
+import           MusicName
 
 scriptByMap  BossRoom       t  _ = bossRoom t
 scriptByMap  Courtyard      t  _ = courtyard t

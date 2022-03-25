@@ -1,34 +1,38 @@
-{-# LANGUAGE Arrows, FlexibleContexts, OverloadedStrings, Rank2Types, NoMonomorphismRestriction #-}
+{-# LANGUAGE FlexibleContexts          #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE OverloadedStrings         #-}
+{-# LANGUAGE Rank2Types                #-}
 
 module Battle.Moves.MeToo (
     meTooEnemy,
     meTooFriend
 ) where
 
-import Control.Monad.Cont
-import Control.Monad.Reader
-import Control.Monad.State
-import FRP.Yampa
-import FRP.Yampa.Geometry
-
-import Activity
-import Battle.Activity
-import Battle.Output
-import Controls
-import ControlsMaps
-import LabelName
-import Lightarrow
-import Menu
-import OfflineData
-import Output
-import Ppmn.Parameters
+import           Control.Monad
+import           Control.Monad.Cont
+import           Control.Monad.Reader
+import           Control.Monad.State
+import           FRP.Yampa
+import           Data.Point2
+import           Data.Vector2
+import           Activity
+import           Battle.Activity
+import           Battle.Output
+import           Controls
+import           ControlsMaps
+import           LabelName
+import           Lightarrow
+import           Menu
+import           OfflineData
+import           Output
+import           Ppmn.Parameters
 
 meTooEnemy = meToo { mpCont = move enemyDateProposal }
 meTooFriend = meToo { mpCont = move friendDateProposal }
 
 meToo = MoveParameters {
     mpAccuracy = 0.9,
-    mpCont = return (),
+    mpCont = pure (),
     mpElement = Ppmn.Parameters.Authority,
     mpName = MeToo,
     mpPower = 0
@@ -43,29 +47,19 @@ move proposal = do
 enemyDateProposal exit = do
     narration1 <- stdCommentary enemyDateProse
     accept1 <- acceptOrReject narration1
-    if accept1
-        then acceptance >> exit ()
-        else return ()
+    when accept1 $ acceptance >> exit ()
     stdHesitation narration1
     desist1 <- state random
-    if (desist1 :: Bool)
-        then firstRejection >> exit ()
-        else return ()
+    when (desist1 :: Bool) $ firstRejection >> exit ()
     narration2 <- stdCommentary dateAgainProse
     accept2 <- acceptOrReject narration2
-    if accept2
-        then acceptance >> exit ()
-        else return ()
+    when accept2 $ acceptance >> exit ()
     stdHesitation narration2
     desist2 <- state (randomR (1, 8))
-    if ((desist2 :: Int) > 5)
-        then secondRejection >> exit ()
-        else return ()
+    when ((desist2 :: Int) > 5) $ secondRejection >> exit ()
     narration3 <- stdCommentary dateAgainProse
     accept3 <- acceptOrReject narration3
-    if accept3
-        then acceptance >> exit ()
-        else return ()
+    when accept3 $ acceptance >> exit ()
     longHesitation narration3
     thirdRejection
 
@@ -73,41 +67,31 @@ friendDateProposal exit = do
     narration1 <- stdCommentary friendDateProse
     stdHesitation narration1
     accept1 <- state (randomR (1, 3))
-    if ((accept1 :: Int) > 2)
-        then acceptance >> exit ()
-        else return ()
+    when ((accept1 :: Int) > 2) $ acceptance >> exit ()
     narration2 <- stdCommentary rejectionProse
     desist1 <- desistOrContinue narration2
-    if desist1
-        then firstRejection >> exit ()
-        else return ()
+     when desist1 $ firstRejection >> exit ()
     stdHesitation narration2
     accept2 <- state (randomR (1, 5))
-    if ((accept2 :: Int) > 3)
-        then acceptance >> exit ()
-        else return ()
+    when ((accept2 :: Int) > 3) $ acceptance >> exit ()
     narration3 <- stdCommentary rejectionAgainProse
     desist2 <- desistOrContinue narration3
-    if desist2
-        then secondRejection >> exit ()
-        else return ()
+    when desist2 $ secondRejection >> exit ()
     stdHesitation narration3
     accept3 <- state random
-    if (accept3 :: Bool)
-        then acceptance >> exit ()
-        else return ()
+    when (accept3 :: Bool) $ acceptance >> exit ()
     stdCommentary rejectionAgainProse >>= stdHesitation
     thirdRejection
 
 acceptOrReject :: (MonadTrans t, MonadReader (Embedding Controls OfflineIO b c) (t (Swont b c))) => OfflineIO -> t (Swont b c) Bool
 acceptOrReject = popUpMenu dateMenu
-desistOrContinue :: (MonadTrans t, MonadReader (Embedding Controls OfflineIO b c) (t (Swont b c))) => OfflineIO -> t (Swont b c) Bool 
+desistOrContinue :: (MonadTrans t, MonadReader (Embedding Controls OfflineIO b c) (t (Swont b c))) => OfflineIO -> t (Swont b c) Bool
 desistOrContinue = popUpMenu desistMenu
 
 popUpMenu menu narration = do
     Embedding embed <- ask
-    (next, k) <- lift . swont $ embed (menuControl >>> menu >>> (first $ arr (narration >.=)))
-    return next
+    (next, k) <- lift . swont $ embed (menuControl >>> menu >>> first (arr (narration >.=)))
+    pure next
 
 acceptance = do
     stdCommentary niceProse >>= stdHesitation
@@ -122,13 +106,13 @@ firstRejection = do
 
 secondRejection = do
     decision <- state (randomR (1, 5))
-    if ((decision :: Int) < 4)
+    if (decision :: Int) < 4
         then anger
         else cool
 
 thirdRejection = do
     decision <- state (randomR (1, 3))
-    if ((decision :: Int) < 3)
+    if (decision :: Int) < 3
         then fury
         else cool
 
@@ -195,4 +179,4 @@ rejectionAgainProse params = sentence '!' [object, "kept resisting"]
 
 dateMenu = backgroundMenu 80 48 (Point2 64 44) $ columnMenu [(Accept, True), (Reject, False)] (False, 0) 0
 
-desistMenu = backgroundMenu 96 48 (Point2 64 44) $ columnMenu [(Desist, True), (Continue, False)] (True, 0) 0 
+desistMenu = backgroundMenu 96 48 (Point2 64 44) $ columnMenu [(Desist, True), (Continue, False)] (True, 0) 0

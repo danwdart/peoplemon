@@ -1,36 +1,37 @@
-{-# LANGUAGE FlexibleContexts, NoMonomorphismRestriction #-}
+{-# LANGUAGE FlexibleContexts          #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 module Battle.Moves.EyePoke (
     eyePokeFriend,
     eyePokeEnemy
 ) where
 
-import Control.Monad.Reader
-import Control.Monad.State
-import FRP.Yampa
-import FRP.Yampa.Geometry
-
-import Activity
-import Battle.Activity
-import Battle.Output
-import Battle.Parameters
-import LabelName
-import Lightarrow
-import OfflineData
-import Output
-import Ppmn.Output
-import Ppmn.Parameters
-import SoundName
-import SpriteName
+import           Control.Monad.Reader
+import           Control.Monad.State
+import           FRP.Yampa
+import           Data.Point2
+import           Data.Vector2
+import           Activity
+import           Battle.Activity
+import           Battle.Output
+import           Battle.Parameters
+import           LabelName
+import           Lightarrow
+import           OfflineData
+import           Output
+import           Ppmn.Output
+import           Ppmn.Parameters
+import           SoundName
+import           SpriteName
 
 eyePokeFriend = eyePoke { mpCont = move }
 eyePokeEnemy = eyePoke { mpCont = move }
 
 eyePoke = MoveParameters {
     mpAccuracy = 0.75,
-    mpCont = return (),
+    mpCont = pure (),
     mpElement = Ppmn.Parameters.Normal,
     mpName = EyePoke,
-    mpPower = 3 
+    mpPower = 3
 }
 
 move = do
@@ -43,8 +44,8 @@ move = do
             damage <- gets moveDamage
             local (const $ embedArr (scene >.=)) $ stdDamageEffect out damage
             summary' <- gets sceneSummary
-            local (const $ embedArr ((scene >.= summary') >.=)) $ stdAccuracyDebuffEffect
-        execute = stdMoveExecute effect (return ())
+            local (const $ embedArr ((scene >.= summary') >.=)) stdAccuracyDebuffEffect
+        execute = stdMoveExecute effect (pure ())
     let embed2 = Embedding (>>> addStatic)
     local (const embed2) $ stdMoveAttempt execute stdMoveFail
 

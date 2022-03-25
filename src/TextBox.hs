@@ -9,24 +9,25 @@ module TextBox (
     writer
     ) where
 
-import Control.Monad
-import Control.Monad.Cont
-import qualified Data.Text as T
-import FRP.Yampa
-import FRP.Yampa.Geometry
+import           Control.Monad
+import           Control.Monad.Cont
+import           Data.Point2
+import qualified Data.Text          as T
+import           Data.Vector2
+import           FRP.Yampa
 
-import Lightarrow
-import Message
-import OfflineData
-import Output
-import Output.Window
-import SpriteName
-import SoundName
-import Teletype
-import TextUtil
+import           Lightarrow
+import           Message
+import           OfflineData
+import           Output
+import           Output.Window
+import           SoundName
+import           SpriteName
+import           Teletype
+import           TextUtil
 
 drawBgExplicit rows position = drawWindow position (10, rows + 1)
-    
+
 drawBg = drawBgExplicit 2 (Point2 0 96)
 
 textPosition = Point2 8 112
@@ -84,7 +85,7 @@ scrolling (lines, frozen) = cont . dSwitch $ proc ((x, _), inbox) -> do
     done         <- edge   -< any isDone outbox
     returnA -< ((displayLines lines x', []), done `tag` (lines, frozen))
   where
-    scroll = (arr $ (.+^ (vector2 0 (-8)))) *** (after (1 / 16) () >>> arr (Done `sayUpon`))
+    scroll = (arr (.+^ (vector2 0 (-8)))) *** (after (1 / 16) () >>> arr (Done `sayUpon`))
 
 displayLines lines x = fst . foldM display (return (), x) lines
   where

@@ -1,20 +1,21 @@
-{-# LANGUAGE FlexibleContexts, OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Battle.Output where
 
-import qualified Data.Text as T
-import FRP.Yampa.Geometry
-
-import Battle.ElementalEffect
-import Battle.Parameters
-import Inventory.Parameters
-import Ppmn.Output
-import Ppmn.Parameters
-import ProseName
-import OfflineData
-import Output
-import StateClass
-import SpriteName
+import qualified Data.Text              as T
+import           Data.Point2
+import           Data.Vector2
+import           Battle.ElementalEffect
+import           Battle.Parameters
+import           Inventory.Parameters
+import           OfflineData
+import           Output
+import           Ppmn.Output
+import           Ppmn.Parameters
+import           ProseName
+import           SpriteName
+import           StateClass
 
 itemUse params bp = ItemUse {
     iuAvatarName = bpAvatarName bp,
@@ -117,6 +118,6 @@ faintProse s = sentence '!' [name, "died"]
   where
     name = actionObjectName s
 
-drawPhone orient position = drawSpriteOriented orient PPhone position
+drawPhone orient = drawSpriteOriented orient PPhone
 
 landedPhone = drawPhone TurnR (Point2 124 48)

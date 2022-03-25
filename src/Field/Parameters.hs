@@ -1,33 +1,34 @@
 module Field.Parameters where
 
-import qualified Data.Map as M
-import qualified Data.Text as T
-import FRP.Yampa
-import FRP.Yampa.Geometry
-import System.Random
+import                qualified Data.Map             as M
+import                qualified Data.Text            as T
+import                          FRP.Yampa
+import           Data.Point2
+import           Data.Vector2
+import                          System.Random
 
-import {-# SOURCE #-} Field.Character
-import Field.MapName
-import Field.Terrain
-import Inventory.Parameters
-import LabelName
-import Lightarrow
-import Message
-import OfflineData
-import Ppmn.Parameters
-import StateClass
+import {-# SOURCE #-}           Field.Character
+import                          Field.MapName
+import                          Field.Terrain
+import                          Inventory.Parameters
+import                          LabelName
+import                          Lightarrow
+import                          Message
+import                          OfflineData
+import                          Ppmn.Parameters
+import                          StateClass
 
 data FieldParameters = FieldParameters {
-    fpAvatar :: Character,
-    fpAvatarName :: T.Text,
-    fpCounters :: PpmnCounters,
-    fpItems :: M.Map LabelName ItemParameters,
-    fpLocale :: Locale,
-    fpMap :: MapName,
-    fpOfflineData :: OfflineData,
-    fpPpmn :: [Ppmn],
+    fpAvatar          :: Character,
+    fpAvatarName      :: T.Text,
+    fpCounters        :: PpmnCounters,
+    fpItems           :: M.Map LabelName ItemParameters,
+    fpLocale          :: Locale,
+    fpMap             :: MapName,
+    fpOfflineData     :: OfflineData,
+    fpPpmn            :: [Ppmn],
     fpRandomGenerator :: StdGen,
-    fpWorld :: M.Map MapName Locale
+    fpWorld           :: M.Map MapName Locale
 }
 
 instance TextSource FieldParameters where

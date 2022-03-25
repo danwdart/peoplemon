@@ -1,16 +1,18 @@
-{-# LANGUAGE FlexibleContexts, OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Inventory.Menu where
 
-import qualified Data.Text as T
-import FRP.Yampa
-import FRP.Yampa.Geometry
+import qualified Data.Text            as T
+import           FRP.Yampa
+import           Data.Point2
+import           Data.Vector2
 
-import Inventory.Parameters
-import LabelName
-import Menu
-import OfflineData
-import Output
+import           Inventory.Parameters
+import           LabelName
+import           Menu
+import           OfflineData
+import           Output
 
 -- why the fuck is it the case that cancel :: (k, Int)
 itemMenu run cancel inventory initial = backgroundMenu 128 88 (Point2 32 16) menu

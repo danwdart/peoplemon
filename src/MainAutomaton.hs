@@ -1,31 +1,33 @@
-{-# LANGUAGE FlexibleContexts, OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module MainAutomaton where
 
-import Control.Monad.Cont
-import Control.Monad.RWS
-import qualified Data.Map as M
-import FRP.Yampa hiding (left, right)
-import FRP.Yampa.Geometry
-import System.Random
+import           Control.Monad.Cont
+import           Control.Monad.RWS
+import qualified Data.Map               as M
+import           FRP.Yampa              hiding (left, right)
+import           Data.Point2
+import           Data.Vector2
+import           System.Random
 
-import Activity
-import Controls
-import ControlsMaps
-import Field
-import Intro
-import Inventory.Items.Booch
-import Inventory.Items.PPhone
-import Inventory.Parameters
-import LabelName
-import Lightarrow
-import OfflineData
-import Output
-import Ppmn.Parameters
-import Ppmn.Species
-import ProseName
-import SoundName
-import SpriteName
+import           Activity
+import           Controls
+import           ControlsMaps
+import           Field
+import           Intro
+import           Inventory.Items.Booch
+import           Inventory.Items.PPhone
+import           Inventory.Parameters
+import           LabelName
+import           Lightarrow
+import           OfflineData
+import           Output
+import           Ppmn.Parameters
+import           Ppmn.Species
+import           ProseName
+import           SoundName
+import           SpriteName
 
 --import Control.Monad.Base
 --import Control.Monad.Trans.Reader
@@ -46,15 +48,15 @@ field rgen od name = runRWST k (Embedding id) fp
         --wildBattle (atLevel 3 ignoloofLearnMove ignoloofBase)
         --trainerBattle TheDonald Donald TheGreatestWitchHuntIn [ppmnByName LabelName.Blamotage 1, ppmnByName LabelName.Unner 1]
         --finalBattle
-    fp = FieldParameters { 
+    fp = FieldParameters {
         fpAvatar = (protagonist (0, 4)) { cRandomGenerator = aRgen },
         fpAvatarName = name,
-        fpCounters = PpmnCounters 0 0 0 (M.fromList []),
-        fpItems = M.fromList [], {-
+        fpCounters = PpmnCounters 0 0 0 (M.empty),
+        fpItems = M.empty, {-
             (Booch, booch { itemStock = 3 }),
             (LabelName.PPhone, pPhone { itemStock = 3 })
             ],-}
-        fpLocale = (fpWorld fp) M.! (fpMap fp),
+        fpLocale = fpWorld fp M.! fpMap fp,
         fpMap = FamilyHouse2F,
         fpOfflineData = od,
         fpPpmn = [],

@@ -1,36 +1,38 @@
-{-# LANGUAGE Arrows, OverloadedStrings #-}
+{-# LANGUAGE Arrows            #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Field.Scripts.FamilyHouse1F (
     familyHouse1FInitial,
     familyHouse1FAfterWoke
     ) where
 
-import Control.Monad.State
-import qualified Data.Text as T
-import FRP.Yampa
-import FRP.Yampa.Geometry
+import           Control.Monad.State
+import qualified Data.Text               as T
+import           FRP.Yampa
+import           Data.Point2
+import           Data.Vector2
 
-import Activity
-import Field.CardinalDirection
-import Field.Character
-import Field.Locale (stdLocale)
-import Field.Output
-import Field.Parameters
-import Field.Personae
-import Lightarrow
-import Message
-import MusicName
-import OfflineData
-import Output
-import Ppmn.Parameters
-import ProseName
-import SpriteName
-import StateClass
+import           Activity
+import           Field.CardinalDirection
+import           Field.Character
+import           Field.Locale            (stdLocale)
+import           Field.Output
+import           Field.Parameters
+import           Field.Personae
+import           Lightarrow
+import           Message
+import           MusicName
+import           OfflineData
+import           Output
+import           Ppmn.Parameters
+import           ProseName
+import           SpriteName
+import           StateClass
 
 yourMom speechReaction = act c0 activity
   where  activity  = do  (m, t)  <- looking West 0.5
                          c       <- get
-                         maybe (return ()) id (speechReaction c t m)
+                         Data.Maybe.fromMaybe (return ()) (speechReaction c t m)
                          activity
          c0        = (mom (2, 2)) { cDirection = West }
 
@@ -58,7 +60,7 @@ heal = map (\p -> p { ppmnHitPoints = ppmnMaxHitPoints p })
 familyHouse1F cs t0 = proc (avatar, news) -> do
     ((draw, sound, t), report) <- stdLocale cs TownTheme t0 -< (avatar, news)
     let xlate = characterXlate avatar
-        drawPhone = drawSpriteOriented TurnL PPhone  
+        drawPhone = drawSpriteOriented TurnL PPhone
         draw' = draw >.= withXlation xlate drawPhone (Point2 24 35)
     returnA -< ((draw', sound, t), report)
 

@@ -1,37 +1,38 @@
-{-# LANGUAGE Arrows, FlexibleContexts, OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Field.Scripts.Courtyard (courtyard) where
 
-import Control.Monad.Cont
-import Control.Monad.State
-import qualified Data.Map as M
-import qualified Data.Text as T
+import           Control.Monad.Cont
+import           Control.Monad.State
+import qualified Data.Map                as M
+import qualified Data.Text               as T
 
-import Activity
-import Field.Activity
-import Field.CardinalDirection
-import Field.Character
-import Field.Locale (stdLocale)
-import Field.Parameters
-import Field.Personae
-import Inventory.Items.Booch
-import Inventory.Items.PPhone
-import LabelName
-import Message
-import MusicName
-import Output
-import Ppmn.Menu
-import Ppmn.Parameters
-import ProseName
-import StateClass
+import           Activity
+import           Field.Activity
+import           Field.CardinalDirection
+import           Field.Character
+import           Field.Locale            (stdLocale)
+import           Field.Parameters
+import           Field.Personae
+import           Inventory.Items.Booch
+import           Inventory.Items.PPhone
+import           LabelName
+import           Message
+import           MusicName
+import           Output
+import           Ppmn.Menu
+import           Ppmn.Parameters
+import           ProseName
+import           StateClass
 
 signalGuy = act c0 (offering >> spent)
   where  offering  = do  (m, t)  <- glancing 0.5
                          c       <- get
-                         maybe offering id (reactSpeak offer c t m)
+                         Data.Maybe.fromMaybe offering (reactSpeak offer c t m)
          spent     = do  (m, t)  <- glancing 0.5
                          c       <- get
-                         maybe (return ()) id (reactSpeak advice c t m)
+                         Data.Maybe.fromMaybe (return ()) (reactSpeak advice c t m)
                          spent
          offer     = posting (FieldAction action)
          advice    = speaking (prose FullyHealthyPeopleWontLet)
@@ -53,14 +54,14 @@ newsboy = act c0 loop
   where  loop    = do  greeting speech
                        looking East 1
                        loop
-         speech  = prose TheHeadHonchoAtDitfy 
+         speech  = prose TheHeadHonchoAtDitfy
          c0      = (kid (-3, -14)) {  cDirection = East,
                                       cIndex = 5 }
 
 advisor = act c0 (offering >> spent)
   where  offering  = do  (m, t)  <- looking South 1
                          c       <- get
-                         maybe offering id (reactSpeak offer c t m)
+                         Data.Maybe.fromMaybe offering (reactSpeak offer c t m)
          spent     = do  greeting (prose DontTryToUseYour)
                          spent
          offer     = posting (FieldAction action)
@@ -73,10 +74,10 @@ advisor = act c0 (offering >> spent)
 phoneMonger = act c0 (proposing >> business)
   where  proposing  = do  (m, t)  <- glancing 1
                           c       <- get
-                          maybe proposing id (reactSpeak propose c t m)
+                          Data.Maybe.fromMaybe proposing (reactSpeak propose c t m)
          business   = do  (m, t)  <- looking South 1
                           c       <- get
-                          maybe business id (reactSpeak sell c t m)
+                          Data.Maybe.fromMaybe business (reactSpeak sell c t m)
          propose    = posting (FieldAction proposal)
          proposal   = do  n1  <- stdLecture (prose SighImTiredOfCatching)
                           arrowWait n1
@@ -117,4 +118,4 @@ sell k = do  ps <- gets fpPpmn
              pickUpItem pPhone 5
 
 beings = [ signalGuy, phoneMonger, cautiousGuy, advisor, newsboy ]
-courtyard t = stdLocale beings FieldTheme t
+courtyard = stdLocale beings FieldTheme

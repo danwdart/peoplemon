@@ -2,22 +2,22 @@
 
 module ControlsMaps where
 
-import FRP.Yampa
+import           FRP.Yampa
 
-import Controls
-import Field.CardinalDirection
-import Lightarrow
-import Message
+import           Controls
+import           Field.CardinalDirection
+import           Lightarrow
+import           Message
 
 menuControl = proc controls -> do
-    select <- edgeTag [MenuSelection]  -< ctlA controls 
+    select <- edgeTag [MenuSelection]  -< ctlA controls
     cancel <- edgeTag [MenuCancel]     -< ctlB controls
     next   <- edgeTag [CursorNext]     -< ctlDown controls
     prev   <- edgeTag [CursorPrevious] -< ctlUp controls
     returnA -< event [] concat (catEvents [select, cancel, next, prev])
 
 boxMenuControl = proc controls -> do
-    select <- edgeTag [MenuSelection] -< ctlA controls 
+    select <- edgeTag [MenuSelection] -< ctlA controls
     cancel <- edgeTag [MenuCancel]    -< ctlB controls
     down   <- edgeTag [CursorDown]    -< ctlDown controls
     left   <- edgeTag [CursorLeft]    -< ctlLeft controls
@@ -40,7 +40,7 @@ avatarControl = proc controls -> do
     controls' <- dirFalse -=> identity -< controls
     inspect <- edgeTag AvatarInspect         -< ctlA controls'
     pause   <- edgeTag Pause                 -< ctlStart controls'
-    north   <- edgeTag (CharacterMove North) -< ctlUp controls' 
+    north   <- edgeTag (CharacterMove North) -< ctlUp controls'
     west    <- edgeTag (CharacterMove West)  -< ctlLeft controls'
     south   <- edgeTag (CharacterMove South) -< ctlDown controls'
     east    <- edgeTag (CharacterMove East)  -< ctlRight controls'

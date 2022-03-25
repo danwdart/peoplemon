@@ -1,11 +1,11 @@
 module StateClass where
 
-import Control.Monad.State
-import qualified Data.Text as T
-import System.Random
+import           Control.Monad.State
+import qualified Data.Text           as T
+import           System.Random
 
-import LabelName
-import ProseName
+import           LabelName
+import           ProseName
 
 class TextSource s where
     prose :: ProseName -> s -> T.Text

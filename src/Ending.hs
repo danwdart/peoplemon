@@ -1,35 +1,37 @@
-{-# LANGUAGE FlexibleContexts, OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Ending (gameEnd) where
 
-import Control.Monad.Reader
-import Control.Monad.State
-import qualified Data.Text as T
-import FRP.Yampa
-import FRP.Yampa.Geometry
+import           Control.Monad.Reader
+import           Control.Monad.State
+import qualified Data.Text            as T
+import           FRP.Yampa
+import           Data.Point2
+import           Data.Vector2
 
-import Activity
-import Battle
-import Field.Parameters
-import LabelName
-import Lightarrow
-import MusicName
-import OfflineData
-import Output
-import ProseName
-import Ppmn.Species
-import SpriteName
-import StateClass
+import           Activity
+import           Battle
+import           Field.Parameters
+import           LabelName
+import           Lightarrow
+import           MusicName
+import           OfflineData
+import           Output
+import           Ppmn.Species
+import           ProseName
+import           SpriteName
+import           StateClass
 
 gameEnd fp = do
     steppingBackTrainer Donald
     modify (\bp -> bp { bpEnemies = [battlePpmnEnemy $ ppmnByName You 99] })
     n1 <- stdCommentary (const (sentence '!' ["The DONALD sent out ", fpAvatarName fp]))
-    local (`compEmbed` embedArr (>.= n1)) $ advancingEnemy
+    local (`compEmbed` embedArr (>.= n1)) advancingEnemy
     scene <- gets sceneDefault
     summary <- gets sceneSummary
     n2 <- local (const $ embedArr ((scene >.= summary >.= n1 >.= drawText (fpAvatarName fp) (Point2 8 0)) >.=)) $ do
-        momentary $ stopMusic
+        momentary stopMusic
         longHesitation nullOut
         momentary $ restartRepeatingMusic TitleTheme
         n2 <- stdLecture (("WOKE: " `T.append`) . prose HadYouFiguredItOut)
@@ -45,7 +47,7 @@ gameEnd fp = do
         local (`compEmbed` embedArr (avatar >.=)) $ do
             n3 <- stdLecture (("WOKE: " `T.append`) . prose IveBeenWatchingYouAll)
             stdWait n3
-            local (`compEmbed` embedArr (n3 >.=)) $ exitFade
+            local (`compEmbed` embedArr (n3 >.=)) exitFade
     local (const (Embedding id)) $ do
         over 1.0 $ constant (clearScreen White)
         lift . swont $ constant (drawText "FIN" (Point2 100 100), NoEvent)

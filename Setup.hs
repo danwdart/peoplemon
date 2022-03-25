@@ -1,5 +1,5 @@
-import Distribution.MacOSX
-import Distribution.Simple
+import           Distribution.MacOSX
+import           Distribution.Simple
 
 --main = defaultMain
 

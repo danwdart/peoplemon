@@ -1,32 +1,35 @@
-{-# LANGUAGE Arrows, FlexibleContexts #-}
+{-# LANGUAGE Arrows           #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TupleSections    #-}
 
 module Menu where
 
-import Control.Monad.Cont
-import Control.Monad.Reader
-import Data.Bool
-import FRP.Yampa hiding (next)
-import FRP.Yampa.Geometry
+import           Control.Monad.Cont
+import           Control.Monad.Reader
+import           Data.Bool
+import           Data.Point2
+import           Data.Vector2
+import           FRP.Yampa            hiding (next)
 
-import Lightarrow
-import Message
-import OfflineData
-import Output
-import Output.Window
-import SoundName
-import SpriteName
+import           Lightarrow
+import           Message
+import           OfflineData
+import           Output
+import           Output.Window
+import           SoundName
+import           SpriteName
 
 choiceOverlay menu = do
     Embedding embed <- ask
     ((action, k), out) <- lift . swont $ embed (menu >>> arr attachOutput)
-    return (local (`compEmbed` embedArr (out >.=)) action, k)
+    pure (local (`compEmbed` embedArr (out >.=)) action, k)
 
 choiceReplace menu = ask >>= \(Embedding embed) -> lift . swont $ embed menu
 
 choiceInlay f menu = do
     Embedding embed <- ask
     ((action, k), out) <- lift . swont $ embed (menu >>> arr attachOutput)
-    return (local (f out) action, k)
+    pure (local (f out) action, k)
 
 backgroundMenu width height position menu = proc commands -> do
     (draw, invoke) <- menu -< (position .+^ vector2 16 16, commands)
@@ -36,7 +39,7 @@ backgroundMenu width height position menu = proc commands -> do
     tw = round $ width / 16
     th = round $ height / 16
 
-fullscreenMenu menu = arr (\x -> (Point2 8 8, x)) >>> menu >>> first (arr (clearScreen White >.=))
+fullscreenMenu menu = arr (Point2 8 8,) >>> menu >>> first (arr (clearScreen White >.=))
 
 -- standard menu
 columnMenu = columnMenuEx columnPresenter
@@ -45,25 +48,25 @@ columnMenuEx presenter [] cancel _ = constant (nullOut, Event cancel)
 columnMenuEx presenter options cancel k0 = attachOffsets >>> listMenu selector drawer dispatcher
   where
     (labels, dispatches) = unzip options
-    listeners = map listenSelection (zip dispatches [0 .. length dispatches - 1])
+    listeners = zipWith (curry listenSelection) dispatches [0 .. length dispatches - 1]
     selector = rangeListSelector k0 0 (length options - 1)
     drawer = columnMenuDraw cursor (presenter labels)
     dispatcher = listDispatcher (listenCancel cancel) listeners
     offsets = [ vector2 0 (fromIntegral n * 16) | n <- [0 .. length options] ]
-    attachOffsets = first (arr (flip (,) offsets))
+    attachOffsets = first (arr (, offsets))
 
 -- scrolling menu
 scrollMenu size _ [] cancel _ = constant (nullOut, Event cancel)
 scrollMenu size presenter options cancel k0 = attachOffsets >>> listMenu selector drawer dispatcher
   where
     (labels, dispatches) = unzip options
-    listeners = map listenSelection (zip dispatches [0 .. length dispatches - 1])
-    safeSize = ((size `min` length options) `max` 0)
+    listeners = zipWith (curry listenSelection) dispatches [0 .. length dispatches - 1]
+    safeSize = (size `min` length options) `max` 0
     selector = loopListSelector k0 (length options)
     drawer = scrollMenuDraw safeSize 0 (length labels - 1) cursor (presenter labels) k0
     dispatcher = listDispatcher (listenCancel cancel) listeners
     offsets = [ vector2 0 (fromIntegral n * 16) | n <- [0 .. safeSize - 1] ]
-    attachOffsets = first (arr (flip (,) offsets))
+    attachOffsets = first (arr (, offsets))
 
 -- menu template
 listMenu selector drawer dispatcher = proc ((position, offsets), inbox) -> do
@@ -102,7 +105,7 @@ scrollMenuDraw size high low cursor presenter initial = runCont (loop (initTop, 
         let scroll = scrollTop `lMerge` scrollBottom `lMerge` scrollUp `lMerge` scrollDown
         returnA -< (foldr (>.=) cursorDraw itemDraws, scroll)
 
-cursor = arr $ (drawSprite Cursor) . (.+^ vector2 (-8) 0)
+cursor = arr $ drawSprite Cursor . (.+^ vector2 (-8) 0)
 
 columnPresenter labels = par zip $ map (arr . (. fst) . drawLabel) labels
 
@@ -111,21 +114,21 @@ scrollPresenter labels t b = par zip $ map (arr . (. fst) . drawLabel) range
     range = take (b - t + 1) $ drop t labels
 
 -- selector
-listSelector initial next previous = arr (mergeEvents . map curse) >>> accumHold initial 
+listSelector initial next previous = arr (mergeEvents . map curse) >>> accumHold initial
   where
-    curse CursorNext     = Event $ next
-    curse CursorPrevious = Event $ previous
+    curse CursorNext     = Event next
+    curse CursorPrevious = Event previous
     curse _              = NoEvent
 
 rangeListSelector initial minimum maximum = listSelector initial next previous
   where
     next = (`min` maximum) . (+ 1)
-    previous = (`max` minimum) . (subtract 1)
+    previous = (`max` minimum) . subtract 1
 
 loopListSelector initial size = listSelector initial next previous
   where
     next = (`mod` size) . (+ 1)
-    previous = (`mod` size) . (subtract 1)
+    previous = (`mod` size) . subtract 1
 
 -- dispatcher
 listDispatcher cListener sListeners = proc (n, inbox) -> do

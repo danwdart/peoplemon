@@ -2,21 +2,21 @@
 
 module Field.Scripts.BossRoom where
 
-import qualified Data.Text as T
+import qualified Data.Text               as T
 
-import Activity
-import Field.Battles
-import Field.CardinalDirection
-import Field.Character
-import Field.Locale
-import Field.Personae
-import Message
-import MusicName
-import ProseName
-import StateClass
+import           Activity
+import           Field.Battles
+import           Field.CardinalDirection
+import           Field.Character
+import           Field.Locale
+import           Field.Personae
+import           Message
+import           MusicName
+import           ProseName
+import           StateClass
 
 thedonald = act c0 (reactingForever react)
-  where  react c t m  = maybe standing id (reactSpeak speech c t m)
+  where  react c t m  = Data.Maybe.fromMaybe standing (reactSpeak speech c t m)
          speech       = do  posting (FieldAction action)
                             standing
          c0           = (donald (-6, -5)) { cDirection = North }

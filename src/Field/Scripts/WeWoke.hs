@@ -1,43 +1,45 @@
-{-# LANGUAGE Arrows, FlexibleContexts, OverloadedStrings #-}
+{-# LANGUAGE Arrows            #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Field.Scripts.WeWoke (weWoke, weWokeInitial, weWokeEntranceScene) where
 
-import Control.Monad.Cont
-import Control.Monad.Reader
-import Control.Monad.State
-import Data.List
-import qualified Data.Map as M
-import qualified Data.Text as T
-import FRP.Yampa hiding (left, right)
-import FRP.Yampa.Geometry
+import           Control.Monad.Cont
+import           Control.Monad.Reader
+import           Control.Monad.State
+import           Data.List
+import qualified Data.Map                    as M
+import qualified Data.Text                   as T
+import           FRP.Yampa                   hiding (left, right)
+import           Data.Point2
+import           Data.Vector2
 
-import Activity
-import ControlsMaps
-import Field.Anchor
-import Field.CardinalDirection
-import Field.Character
-import Field.Locale
-import Field.MapName
-import Field.Output
-import Field.Parameters
-import Field.Personae
-import Field.Personae
-import Field.Scripts.FamilyHouse1F
-import Field.Terrain
-import LabelName
-import Lightarrow
-import Menu
-import Message
-import MusicName
-import OfflineData
-import Output
-import Ppmn.Menu
-import Ppmn.Parameters
-import Ppmn.Species
-import ProseName
-import SoundName (SoundName(Jingle))
-import SpriteName
-import StateClass
+import           Activity
+import           ControlsMaps
+import           Field.Anchor
+import           Field.CardinalDirection
+import           Field.Character
+import           Field.Locale
+import           Field.MapName
+import           Field.Output
+import           Field.Parameters
+import           Field.Personae
+import           Field.Scripts.FamilyHouse1F
+import           Field.Terrain
+import           LabelName
+import           Lightarrow
+import           Menu
+import           Message
+import           MusicName
+import           OfflineData
+import           Output
+import           Ppmn.Menu
+import           Ppmn.Parameters
+import           Ppmn.Species
+import           ProseName
+import           SoundName                   (SoundName (Jingle))
+import           SpriteName
+import           StateClass
 
 weWokeInitial t0 rg = proc (avatar, news) -> do
     ((d, s, t), lMsg) <- stdLocale npcs CenterTheme t0 -< (avatar, news)
@@ -46,10 +48,10 @@ weWokeInitial t0 rg = proc (avatar, news) -> do
     returnA -< ((d', s, t), lMsg)
   where (_, npcs) = uniqueCharacters rg
 
-weWokeEntranceScene t0 rg = localeStarters starters selectFirst woke MainTheme t0 rg >>> (second sceneTrigger)
+weWokeEntranceScene t0 rg = localeStarters starters selectFirst woke MainTheme t0 rg >>> second sceneTrigger
   where
-    woke          = act c0 (let loop = walking >> loop in loop) 
-    c0            = pivot North (msWoke (1, (-2)))
+    woke          = act c0 (let loop = walking >> loop in loop)
+    c0            = pivot North (msWoke (1, -2))
     sceneTrigger  = after 1 (FieldAction trigger)
     trigger = do
         modify (\fp -> fp { fpLocale = keep (weWoke t0 rg) })
@@ -71,7 +73,7 @@ locked = adjustElem lock 0 1 . adjustElem lock 1 1
 weWoke t0 rg = localeStarters starters selectFirst woke1 MainTheme t0 rg
   where
     woke1         = act woke0 (reactingForever react1)
-    react1 c t m  = maybe standing id (reaction c t m)
+    react1 c t m  = Data.Maybe.fromMaybe standing (reaction c t m)
     reaction c t  = reactSpeak (welcoming >> return (Done, t)) c t
     welcoming     = posting (FieldAction welcome)
     welcome      = do
@@ -95,7 +97,7 @@ ppmn = [let p = ppmnByName n 10 in p { ppmnMoves = take 2 (ppmnMoves p) } | n <-
 
 characters = [greeter, peoplethon1, peoplethon2, strategist, elated, lounger, facingNorth, confidant]
 
-uniqueCharacters rg0 = (rgN, map apply (zip characters (zip indices rgs)))
+uniqueCharacters rg0 = (rgN, zipWith (curry apply) characters (zip indices rgs))
   where  apply             = uncurry (uncurry . ($))
          indices           = [1 .. length characters]
          nextRg _ (r, rs)  = let (r1, r2) = split r in (r2, r1:rs)
@@ -104,7 +106,7 @@ uniqueCharacters rg0 = (rgN, map apply (zip characters (zip indices rgs)))
 freak persona x dir speech index rg = act c0 loop
   where  loop    = do  (m, t)  <- looking dir 0.5
                        c       <- get
-                       maybe (return ()) id (reactSpeak (speaking speech) c t m)
+                       Data.Maybe.fromMaybe (return ()) (reactSpeak (speaking speech) c t m)
                        loop
          c0      = (persona x) {  cDirection        = dir,
                                   cIndex            = index,
@@ -114,13 +116,13 @@ freak persona x dir speech index rg = act c0 loop
 peoplethon1 index rg = act c0 loop
   where  loop    = do  dt      <- state (randomR (1, 2))
                        indexD  <- state (randomR (0, 3))
-                       let dir = case (toEnum indexD) of
+                       let dir = case toEnum indexD of
                                     South -> North
                                     West  -> East
                                     d     -> d
                        (m, t)  <- looking dir dt
                        c       <- get
-                       maybe (return ()) id $ reactSpeak speech c t m
+                       Data.Maybe.fromMaybe (return ()) $ reactSpeak speech c t m
                        loop
          speech  = speaking (prose WerePlanningAPeoplethon)
          c0      = (leaner (5, -6)) {  cDirection        = North,
@@ -130,13 +132,13 @@ peoplethon1 index rg = act c0 loop
 peoplethon2 index rg = act c0 loop
   where  loop    = do  dt      <- state (randomR (1, 2))
                        indexD  <- state (randomR (0, 3))
-                       let dir = case (toEnum indexD) of
+                       let dir = case toEnum indexD of
                                     South -> North
                                     East  -> West
                                     d     -> d
                        (m, t)  <- looking dir dt
                        c       <- get
-                       maybe (return ()) id $ reactSpeak speech c t m
+                       Data.Maybe.fromMaybe (return ()) $ reactSpeak speech c t m
                        loop
          speech  = speaking (prose WereGonnaSpendAllDay)
          c0      = (man (6, -6)) {  cDirection        = North,
@@ -161,7 +163,7 @@ phonePositions = [(-28, -44), (84, -108), (100, -108), (-124, -80), (52, -112), 
 drawPhone xlate orient (x, y) = withXlation xlate draw position
   where
     position = Point2 (fromIntegral x) (fromIntegral y)
-    draw = drawSpriteOriented orient SpriteName.PPhone  
+    draw = drawSpriteOriented orient SpriteName.PPhone
 
 drawAllPhones xlate = foldl ((. uncurry (drawPhone xlate)) . (>.=)) nullOut (zip phoneOrientations phonePositions)
 
@@ -176,7 +178,7 @@ localeStarters starters select woke theme t0 rg = proc (avatar, news) -> do
         draw   = charactersDraw (c:cs) xlate
         sDraw  = startersDraw starters xlate
         xlate  = characterXlate avatar
-        report = msg `lMerge` (mergeEvents msgs) `lMerge` news
+        report = msg `lMerge` mergeEvents msgs `lMerge` news
         music  = restartMusic theme news
     returnA -< ((draw >.= drawPhones >.= sDraw, music, t'), report)
   where
@@ -196,16 +198,14 @@ startersDraw starters xlate = foldl' (>.=) nullOut (map drawStarter points)
 addStarter inspect (x, y) t = setElem (update elem) x y t
   where
     update e = e { teCollides = True, teInspect = const $ return $ Event $ FieldAction inspect }
-    elem = maybe teDefault id (getElem x y t)
+    elem = Data.Maybe.fromMaybe teDefault (getElem x y t)
 
 selectStarter ppmn demeanor receive = do
     personDetails ppmn
     narration <- stdLecture (message . label (ppmnName ppmn))
     confirmation <- popUpMenu confirmMenu narration
-    if confirmation
-        then receive
-        else return ()
-  where 
+    Control.Monad.when confirmation receive
+  where
     message label = sentence '?' ["So! You want the ", demeanor, "PERSON, ", label]
 
 receive1 p remaining t0 woke0 rg = do
@@ -213,7 +213,7 @@ receive1 p remaining t0 woke0 rg = do
     local (const $ Embedding id) (anchor (sceneWith id lTiming observe))
   where
     woke = act woke0 (reactingForever react)
-    react c t m = maybe standing id (reaction c t m)
+    react c t m = Data.Maybe.fromMaybe standing (reaction c t m)
     reaction c t = reactSpeak (inspiring >> return (Done, t)) c t
     inspiring = posting (FieldAction (inspire remaining t0 woke0 rg))
     locale = localeStarters remaining selectRemaining woke MainTheme t0 rg
@@ -222,7 +222,7 @@ receive1 p remaining t0 woke0 rg = do
 
 receive2 p = do
     narration <- stdCommentary ((\name -> sentence '!' ["Received a", name]) . label (ppmnName p))
-    local (`compEmbed` (embedArr (>.= narration))) $ momentary (playSoloSound Jingle)
+    local (`compEmbed` embedArr (>.= narration)) $ momentary (playSoloSound Jingle)
     arrowWait narration
     local (const $ Embedding id) (anchor (sceneWith aTiming lTiming observe))
   where
@@ -232,7 +232,7 @@ receive2 p = do
 
 popUpMenu menu narration = do
     Embedding embed <- ask
-    (next, k) <- lift . swont $ embed (menuControl >>> menu >>> (first $ arr (narration >.=)))
+    (next, k) <- lift . swont $ embed (menuControl >>> menu >>> first (arr (narration >.=)))
     return next
 
 confirmMenu = backgroundMenu 64 48 (Point2 80 44) menu

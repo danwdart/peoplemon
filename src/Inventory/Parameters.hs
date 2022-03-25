@@ -1,15 +1,15 @@
 module Inventory.Parameters where
 
-import qualified Data.Text as T
-import System.Random
+import                qualified Data.Text         as T
+import                          System.Random
 
-import {-# SOURCE #-} Battle.Parameters
-import Controls
-import LabelName
-import Lightarrow
-import OfflineData
-import Ppmn.Parameters
-import StateClass
+import {-# SOURCE #-}           Battle.Parameters
+import                          Controls
+import                          LabelName
+import                          Lightarrow
+import                          OfflineData
+import                          Ppmn.Parameters
+import                          StateClass
 
 data ItemParameters = ItemParameters {
     itemFieldCont :: FlatEmbeddedActivity ItemUse Controls OfflineIO (),
@@ -18,14 +18,14 @@ data ItemParameters = ItemParameters {
     itemStock :: Int
 }
 
-itemAdd params@(ItemParameters { itemStock = s }) = params { itemStock = min 99 (s + 1) }
-itemSubtract params@(ItemParameters { itemStock = s }) = params { itemStock = max 0 (s - 1) }
+itemAdd params@ItemParameters { itemStock = s } = params { itemStock = min 99 (s + 1) }
+itemSubtract params@ItemParameters { itemStock = s } = params { itemStock = max 0 (s - 1) }
 
 data ItemUse = ItemUse {
-    iuAvatarName :: T.Text,
-    iuParams :: ItemParameters,
-    iuObject :: Ppmn,
-    iuOfflineData :: OfflineData,
+    iuAvatarName      :: T.Text,
+    iuParams          :: ItemParameters,
+    iuObject          :: Ppmn,
+    iuOfflineData     :: OfflineData,
     iuRandomGenerator :: StdGen
 }
 

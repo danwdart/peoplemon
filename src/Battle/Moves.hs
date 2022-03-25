@@ -6,10 +6,10 @@ module Battle.Moves (
     friendMoveByName
 ) where
 
-import Battle.MoveName
-import Battle.Moves.EyePoke
-import Battle.Moves.MeToo
-import Battle.Moves.SuckerPunch
+import           Battle.MoveName
+import           Battle.Moves.EyePoke
+import           Battle.Moves.MeToo
+import           Battle.Moves.SuckerPunch
 
 friendMoveByName EyePoke     = eyePokeFriend
 friendMoveByName MeToo       = meTooFriend

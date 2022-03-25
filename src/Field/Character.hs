@@ -1,47 +1,51 @@
-{-# LANGUAGE Arrows, FlexibleContexts, OverloadedStrings #-}
+{-# LANGUAGE Arrows            #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Field.Character where
 
-import Control.Applicative ((<|>))
-import Control.Monad.Trans
-import Control.Monad.State
-import Control.Monad.Cont
-import Data.Bool
-import qualified Data.Text as T
-import FRP.Yampa hiding (left, right)
-import FRP.Yampa.Geometry
-import System.Random
+import                          Control.Applicative     ((<|>))
+import                          Control.Monad.Cont
+import                          Control.Monad.State
+import                          Control.Monad.Trans
+import                          Data.Bool
+import                          Data.Maybe
+import                qualified Data.Text               as T
+import                          FRP.Yampa               hiding (left, right)
+import           Data.Point2
+import           Data.Vector2
+import                          System.Random
 
-import Activity
-import Controls
-import Field.CardinalDirection
-import Field.Parameters
-import {-# SOURCE #-} Field.Personae
-import Field.PersonaName
-import Field.Terrain
-import Lightarrow
-import Message
-import OfflineData
+import                          Activity
+import                          Controls
+import                          Field.CardinalDirection
+import                          Field.Parameters
+import                          Field.PersonaName
+import {-# SOURCE #-}           Field.Personae
+import                          Field.Terrain
+import                          Lightarrow
+import                          Message
+import                          OfflineData
 
 data Character = Character {
-    cAnimation :: KeepSF () (Point2 Double -> Vector2 Double -> OfflineIO),
-    cDraw :: Point2 Double -> Vector2 Double -> OfflineIO,
-    cDirection :: CardinalDirection,
-    cGaits :: CharacterGaits,
-    cIndex :: Int,
-    cName :: PersonaName,
-    cOccupy :: Terrain -> Terrain,
-    cPosition :: (Double, Double),
+    cAnimation       :: KeepSF () (Point2 Double -> Vector2 Double -> OfflineIO),
+    cDraw            :: Point2 Double -> Vector2 Double -> OfflineIO,
+    cDirection       :: CardinalDirection,
+    cGaits           :: CharacterGaits,
+    cIndex           :: Int,
+    cName            :: PersonaName,
+    cOccupy          :: Terrain -> Terrain,
+    cPosition        :: (Double, Double),
     cRandomGenerator :: StdGen,
-    cSpeed :: Double,
-    cStances :: CharacterStances
+    cSpeed           :: Double,
+    cStances         :: CharacterStances
 }
 
 instance Show Character where
     show c = show (cName c, let (x, y) = cPosition c in (round x, round y))
 
 instance Read Character where
-    readsPrec = (map (first (\(n, x) -> personaByName n x)) .) . readsPrec
+    readsPrec = (fmap (first (uncurry personaByName)) .) . readsPrec
 
 instance RandomGen Character where
     next c    = let (k, g) = next (cRandomGenerator c) in
@@ -51,17 +55,17 @@ instance RandomGen Character where
     genRange  = genRange . cRandomGenerator
 
 data CharacterStances = CharacterStances {
-    csEastStance    :: SF () (Point2 Double -> Vector2 Double -> OfflineIO),
-    csNorthStance   :: SF () (Point2 Double -> Vector2 Double -> OfflineIO),
-    csSouthStance   :: SF () (Point2 Double -> Vector2 Double -> OfflineIO),
-    csWestStance    :: SF () (Point2 Double -> Vector2 Double -> OfflineIO)
+    csEastStance  :: SF () (Point2 Double -> Vector2 Double -> OfflineIO),
+    csNorthStance :: SF () (Point2 Double -> Vector2 Double -> OfflineIO),
+    csSouthStance :: SF () (Point2 Double -> Vector2 Double -> OfflineIO),
+    csWestStance  :: SF () (Point2 Double -> Vector2 Double -> OfflineIO)
 }
 
 data CharacterGaits = CharacterGaits {
-    cgEastGait      :: SF () (Point2 Double -> Vector2 Double -> OfflineIO),
-    cgNorthGait     :: SF () (Point2 Double -> Vector2 Double -> OfflineIO),
-    cgSouthGait     :: SF () (Point2 Double -> Vector2 Double -> OfflineIO),
-    cgWestGait      :: SF () (Point2 Double -> Vector2 Double -> OfflineIO)
+    cgEastGait  :: SF () (Point2 Double -> Vector2 Double -> OfflineIO),
+    cgNorthGait :: SF () (Point2 Double -> Vector2 Double -> OfflineIO),
+    cgSouthGait :: SF () (Point2 Double -> Vector2 Double -> OfflineIO),
+    cgWestGait  :: SF () (Point2 Double -> Vector2 Double -> OfflineIO)
 }
 
 blocked direction c = maybe False teCollides . getElem (round (x + dx)) (round (y + dy))
@@ -71,23 +75,23 @@ blocked direction c = maybe False teCollides . getElem (round (x + dx)) (round (
 pivot newDirection c = c' { cAnimation = keep (gait c') }
   where  c' = c { cDirection = newDirection }
 
-snap c@(Character { cPosition = (x, y) }) = c { cPosition = (s x, s y) }
-  where s = fromIntegral . round 
+snap c@Character { cPosition = (x, y) } = c { cPosition = (s x, s y) }
+  where s = fromIntegral . round
 
 stance Character { cDirection = North,  cStances = stances }  = csNorthStance stances
 stance Character { cDirection = West,   cStances = stances }  = csWestStance stances
 stance Character { cDirection = South,  cStances = stances }  = csSouthStance stances
 stance Character { cDirection = East,   cStances = stances }  = csEastStance stances
 
-gait Character { cDirection = North,  cGaits = gaits }  = cgNorthGait gaits
-gait Character { cDirection = West,   cGaits = gaits }  = cgWestGait gaits
-gait Character { cDirection = South,  cGaits = gaits }  = cgSouthGait gaits
-gait Character { cDirection = East,   cGaits = gaits }  = cgEastGait gaits
+gait Character { cDirection = North,  cGaits = gaits } = cgNorthGait gaits
+gait Character { cDirection = West,   cGaits = gaits } = cgWestGait gaits
+gait Character { cDirection = South,  cGaits = gaits } = cgSouthGait gaits
+gait Character { cDirection = East,   cGaits = gaits } = cgEastGait gaits
 
-displacement North  = (0, -1)
-displacement West   = (-1, 0)
-displacement South  = (0, 1)
-displacement East   = (1, 0)
+displacement North = (0, -1)
+displacement West  = (-1, 0)
+displacement South = (0, 1)
+displacement East  = (1, 0)
 
 type CharacterActivity = StateT  Character
                                  (Cont (SF  (Terrain, Event Message)
@@ -108,12 +112,12 @@ greeting :: (FieldParameters -> T.Text) -> CharacterActivity (Message, Terrain)
 greeting speech = do  (m, t)  <- standing
                       c0      <- get
                       react c0 t m
-  where  react c t m  = maybe (return (m, t)) id (reaction c t m)
+  where  react c t m  = fromMaybe (pure (m, t)) (reaction c t m)
          reaction     = stop <.> turn <.> move <.> speak
          stop         = reactStop standing
          turn         = reactTurn standing
          move         = reactMove walking standing
-         speak c t m  = reactSpeak (speaking speech >> return (Done, t)) c t m
+         speak c t m  = reactSpeak (speaking speech >> pure (Done, t)) c t m
 
 
 reactingForever ::  (  Character ->
@@ -135,12 +139,12 @@ type Reaction a = Character ->
 r1 <.> r2 = \c t m -> r1 c t m <|> r2 c t m
 
 reactStop :: CharacterActivity a -> Reaction a
-reactStop  action  c  t  CharacterStop  = Just action
-reactStop  _       _  _  _              = Nothing
+reactStop  action  c  t  CharacterStop = Just action
+reactStop  _       _  _  _             = Nothing
 
 reactTurn :: CharacterActivity a -> Reaction a
-reactTurn  action  c  t  (CharacterTurn d)  = Just (turning d >> action)
-reactTurn  _       _  _  _                  = Nothing
+reactTurn  action  c  t  (CharacterTurn d) = Just (turning d >> action)
+reactTurn  _       _  _  _                 = Nothing
 
 reactMove :: CharacterActivity a -> CharacterActivity a -> Reaction a
 reactMove  moving  stopping  c  t  (CharacterMove d)
@@ -161,19 +165,18 @@ approaching pT@(xT, yT) t = do  c0 <- get
                                 unless (pC == pT) $ do
                                     let  dx   = xT - xC
                                          dy   = yT - yC
-                                         dir  = if abs dy > abs dx
-                                                      then  if dy > 0
-                                                              then South
-                                                              else North
-                                                      else  if dx > 0
-                                                              then East
-                                                              else West
+                                         dir
+                                            | abs dy > abs dx = if dy > 0
+                                                then South
+                                                else North
+                                            | dx > 0 = East
+                                            | otherwise = West
                                     turning dir
                                     unless (blocked dir c0 t) $ do
                                       (m, t')  <- walking
                                       case m of
-                                        CharacterStop  -> return ()
-                                        _              -> approaching pT t'
+                                        CharacterStop -> pure ()
+                                        _             -> approaching pT t'
 
 wandering ::  Time ->
               ((Double, Double), (Double, Double)) ->
@@ -192,18 +195,18 @@ wandering dt bounds = do
                        do  turning d'
                            s <- state (randomR (1, 3))
                            loop s
-         _      -> return (m, t)
+         _      -> pure (m, t)
   where  loop 1          = walking
          loop steps      = do  (m, t)  <- walking
                                c       <- get
                                if facingBoundary c
-                                    then  return (m, t)
+                                    then  pure (m, t)
                                     else  react steps c t m
          loop :: Int -> CharacterActivity (Message, Terrain)
-         react s c t m     = maybe (loop (s - 1)) id (reaction c t m)
+         react s c t m     = fromMaybe (loop (s - 1)) (reaction c t m)
             where  reaction  = stop <.> move <.> turn
-                   stop      = reactStop (return (m, t))
-                   move      = reactMove (loop (s - 1)) (return (m, t))
+                   stop      = reactStop (pure (m, t))
+                   move      = reactMove (loop (s - 1)) (pure (m, t))
                    turn      = reactTurn (loop (s - 1))
          facingBoundary c  = x' < xMin || x' > xMax || y' < yMin || y' > yMax
             where  (x',  y')                     = (x + dx, y + dy)
@@ -218,16 +221,16 @@ glancing median = do  dt      <- state (randomR (1/2 * median, 3/2 * median))
                       case m of
                            Done  -> do  d <- state (randomR (0, 3))
                                         turning (toEnum d)
-                           _     -> return ()
-                      return (m, t)
+                           _     -> pure ()
+                      pure (m, t)
 
 looking :: CardinalDirection -> Time -> CharacterActivity (Message, Terrain)
 looking dir median = do  dt      <- state (randomR (1/2 * median, 3/2 * median))
                          (m, t)  <- waiting dt Done
                          case m of
-                             Done  -> turning dir
-                             m     -> return ()
-                         return (m, t)
+                             Done -> turning dir
+                             m    -> pure ()
+                         pure (m, t)
 
 speaking :: (FieldParameters -> T.Text) -> CharacterActivity ()
 speaking speech = posting (FieldAction (stdLecture speech >>= stdWait))
@@ -249,7 +252,7 @@ waiting interval m0 = do  c0 <- get
                                returnA -< ((c, e'), e' `attach` (c, t))
                           (m, (c, t)) <- lift (swont sf)
                           put c
-                          return (m, t)
+                          pure (m, t)
 
 standing :: CharacterActivity (Message, Terrain)
 standing = do  c0 <- get
@@ -259,7 +262,7 @@ standing = do  c0 <- get
                     returnA -< ((c, e'), e' `attach` (c, t))
                (m, (c, t)) <- lift (swont sf)
                put c
-               return (m, t)
+               pure (m, t)
 
 walking :: CharacterActivity (Message, Terrain)
 walking = do  c0 <- get
@@ -267,7 +270,7 @@ walking = do  c0 <- get
                    sf  = walk c0 *** (notYet >>> hold m0) >>> arr report
               (r, c) <- lift (swont sf)
               put c
-              return r
+              pure r
   where  report ((c, e), m) = ((c, e `tag` m), fmap (\(c, t) -> ((m, t), c)) e)
          report ::  ((Character, Event (Character, Terrain)), Message) ->
                     ((Character, Event Message),
@@ -280,7 +283,7 @@ stand c0 = proc t -> do
   where  drawing  = stance c0
          update   = listen (round x) (round y) . occupy (round x) (round y)
          listen   = adjustElem (\te -> te { teInspect = inspect })
-         inspect  = return . Event . CharacterSpeech index
+         inspect  = pure . Event . CharacterSpeech index
          (x, y)   = cPosition c0
          index    = cIndex c0
 
@@ -328,8 +331,8 @@ wanderRegion ((xMin, yMin), (xMax, yMax)) interval rgen = proc (c, t) -> do
         valid East  = x < xMax
         fD = bool <$> oppositeDirection <*> id <*> valid
         fM (CharacterMove d) = CharacterMove (fD d)
-        fM x = x
-        inside = foldl (&&) True (map valid [North, West, South, East])
+        fM x                 = x
+        inside = and (fmap valid [North, West, South, East])
     stop <- edgeTag CharacterStop -< not inside
     msg  <- wander interval rgen  -< ()
     returnA -< stop `lMerge` fmap fM msg

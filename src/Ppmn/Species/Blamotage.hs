@@ -2,14 +2,15 @@
 
 module Ppmn.Species.Blamotage where
 
-import FRP.Yampa.Geometry
+import           Data.Point2
+import           Data.Vector2
 
-import Battle.MoveName
-import LabelName
-import Ppmn.Parameters
-import ProseName
-import SpriteName
-import SoundName
+import           Battle.MoveName
+import           LabelName
+import           Ppmn.Parameters
+import           ProseName
+import           SoundName
+import           SpriteName
 
 blamotageBase = Ppmn {
     ppmnAccuracyStage = 0,
@@ -36,5 +37,5 @@ blamotageBase = Ppmn {
 
 blamotageLearnMove 1 = Just Battle.MoveName.SuckerPunch
 blamotageLearnMove 3 = Just Battle.MoveName.EyePoke
-blamotageLearnMove 6 = Just Battle.MoveName.MeToo 
+blamotageLearnMove 6 = Just Battle.MoveName.MeToo
 blamotageLearnMove _ = Nothing

@@ -1,8 +1,8 @@
 module Battle.ElementalEffect where
 
-import Data.Array
+import           Data.Array
 
-import Ppmn.Parameters
+import           Ppmn.Parameters
 
 data Effectiveness = Futile | Weak | Basic | Strong
     deriving (Enum, Eq)
@@ -31,4 +31,4 @@ elemEffects = listArray ((1,1), (6,6)) $ concat [rNormal, rAuthority, rApathy, r
     rGreed     = [ Strong, Basic,  Strong, Basic,  Basic,  Basic  ]
 
 effectiveness :: Element -> Element -> Effectiveness
-effectiveness move defend = elemEffects ! ((fromEnum move + 1), (fromEnum defend + 1))
+effectiveness move defend = elemEffects ! (fromEnum move + 1, fromEnum defend + 1)

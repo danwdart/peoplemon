@@ -1,22 +1,25 @@
-{-# LANGUAGE Arrows, FlexibleContexts, NoMonomorphismRestriction, OverloadedStrings #-}
+{-# LANGUAGE Arrows                    #-}
+{-# LANGUAGE FlexibleContexts          #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE OverloadedStrings         #-}
 
 module Field.Anchor where
 
-import Control.Monad.Reader
-import Control.Monad.State
-import qualified Data.Map as M
-import FRP.Yampa
+import                          Control.Monad.Reader
+import                          Control.Monad.State
+import                qualified Data.Map             as M
+import                          FRP.Yampa
 
-import ControlsMaps
-import Field.Avatar
-import Field.Character
-import {-# SOURCE #-} Field.Editor
-import Field.Output
-import Field.Parameters
-import Field.Terrain
-import Lightarrow
-import Message
-import OfflineData
+import                          ControlsMaps
+import                          Field.Avatar
+import                          Field.Character
+import {-# SOURCE #-}           Field.Editor
+import                          Field.Output
+import                          Field.Parameters
+import                          Field.Terrain
+import                          Lightarrow
+import                          Message
+import                          OfflineData
 
 anchor scene = do
     l <- gets fpLocale
@@ -30,7 +33,7 @@ explore avatar (KeepSF kept) = proc controls -> do
     command   <- avatarControl             -< controls
     rMsg      <- initially (Event Restart) -< NoEvent
     rec
-        t'                                 <- iPre empty   -< et 
+        t'                                 <- iPre empty   -< et
         (a, aMsg)                          <- avatar       -< (t', command)
         (((lDraw, sound, t), lMsg), kept') <- kept         -< (a, rMsg `lMerge` aMsg)
         lMsg'                              <- iPre NoEvent -< lMsg

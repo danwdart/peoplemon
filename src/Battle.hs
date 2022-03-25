@@ -8,10 +8,10 @@ module Battle (
     module Battle.Vignette
 ) where
 
-import Battle.Activity
-import Battle.Anchor
-import Battle.ElementalEffect
-import Battle.Moves
-import Battle.Output
-import Battle.Parameters
-import Battle.Vignette
+import           Battle.Activity
+import           Battle.Anchor
+import           Battle.ElementalEffect
+import           Battle.Moves
+import           Battle.Output
+import           Battle.Parameters
+import           Battle.Vignette

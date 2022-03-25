@@ -1,30 +1,32 @@
-{-# LANGUAGE Arrows, FlexibleContexts, OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Inventory.Items.PPhone where
 
-import Control.Monad.Reader
-import Control.Monad.State
-import qualified Data.Text as T
-import FRP.Yampa
-import FRP.Yampa.Geometry
-import System.Random
+import           Control.Monad.Reader
+import           Control.Monad.State
+import qualified Data.Text            as T
+import           FRP.Yampa
+import           Data.Point2
+import           Data.Vector2
+import           System.Random
 
-import Activity
-import Battle.Activity
-import Battle.Output
-import Battle.Parameters
-import Battle.Vignette
-import Inventory.Parameters
-import LabelName
-import Lightarrow
-import OfflineData
-import Output
-import Ppmn.Output
-import Ppmn.Parameters
-import ProseName
-import SoundName
-import SpriteName
-import StateClass
+import           Activity
+import           Battle.Activity
+import           Battle.Output
+import           Battle.Parameters
+import           Battle.Vignette
+import           Inventory.Parameters
+import           LabelName
+import           Lightarrow
+import           OfflineData
+import           Output
+import           Ppmn.Output
+import           Ppmn.Parameters
+import           ProseName
+import           SoundName
+import           SpriteName
+import           StateClass
 
 pPhone = ItemParameters {
     itemBattleCont = do
@@ -70,7 +72,7 @@ totalFailure = do
         n1 <- stdCommentary (\s -> sentence '!' [prose Enemy s, label (ppmnName p) s, "loves its job"])
         stdHesitation n1
         n2 <- stdCommentary (\s -> sentence '.' [nameA `T.append` prose S s, label LabelName.PPhone s, "did not appeal to", prose Enemy s, label (ppmnName p) s])
-        stdHesitation n2 
+        stdHesitation n2
 
 announceToss = do
     name <- gets bpAvatarName
@@ -126,5 +128,5 @@ bouncePast = do
         throwPhone (Point2 159 38) (Point2 190 31) 5 (1/8)
         momentary (playSound Poke)
 
-isPPhone item@(ItemParameters { itemName = LabelName.PPhone }) = True
-isPPhone _ = False
+isPPhone item@ItemParameters { itemName = LabelName.PPhone } = True
+isPPhone _                                                   = False

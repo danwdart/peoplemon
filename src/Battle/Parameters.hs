@@ -1,24 +1,25 @@
-{-# LANGUAGE FlexibleContexts, OverloadedStrings, ViewPatterns #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Battle.Parameters where
 
-import Control.Monad.State
-import qualified Data.Map as M
-import qualified Data.Text as T
-import System.Random
+import           Control.Monad.State
+import qualified Data.Map               as M
+import qualified Data.Text              as T
+import           System.Random
 
-import Battle.ElementalEffect
-import Controls
-import Inventory.Parameters
-import LabelName
-import Lightarrow
-import OfflineData
-import Ppmn.Parameters
-import ProseName
-import SpriteName
-import StateClass
+import           Battle.ElementalEffect
+import           Controls
+import           Inventory.Parameters
+import           LabelName
+import           Lightarrow
+import           OfflineData
+import           Ppmn.Parameters
+import           ProseName
+import           SpriteName
+import           StateClass
 
-import Debug.Trace
+import           Debug.Trace
 
 class PpmnAction s => BattleMove s where
     moveAccuracy :: s -> Double
@@ -83,7 +84,7 @@ enemyName s = T.concat [enemy, " ", name]
     name = label (ppmnName $ battleEnemy s) s
 
 data EnemyTrainer = EnemyTrainer {
-    etName :: LabelName,
+    etName   :: LabelName,
     etSpeech :: ProseName,
     etSprite :: SpriteName
 }
@@ -160,10 +161,10 @@ stageMultiplier (-4) = 1 / 3
 stageMultiplier (-3) = 2 / 5
 stageMultiplier (-2) = 1 / 2
 stageMultiplier (-1) = 2 / 3
-stageMultiplier 0 = 1 
-stageMultiplier 1 = 3 / 2
-stageMultiplier 2 = 2
-stageMultiplier 3 = 5 / 2
-stageMultiplier 4 = 3
-stageMultiplier 5 = 7 / 2
-stageMultiplier 6 = 4
+stageMultiplier 0    = 1
+stageMultiplier 1    = 3 / 2
+stageMultiplier 2    = 2
+stageMultiplier 3    = 5 / 2
+stageMultiplier 4    = 3
+stageMultiplier 5    = 7 / 2
+stageMultiplier 6    = 4

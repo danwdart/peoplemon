@@ -1,6 +1,6 @@
 module Controls where
 
-import SDL
+import           SDL
 
 data Controls = Controls {
     ctlA      :: Bool,
@@ -64,9 +64,9 @@ readControls keyHeld mouseButtonHeld (P (V2 x y)) = Controls {
   where
     a      = keyHeld ScancodeZ
     b      = keyHeld ScancodeX
-    down   = (not up) && keyHeld ScancodeDown
+    down   = not up && keyHeld ScancodeDown
     e      = keyHeld ScancodeE
-    left   = (not right) && keyHeld ScancodeLeft
+    left   = not right && keyHeld ScancodeLeft
     lmb    = mouseButtonHeld ButtonLeft
     mmb    = mouseButtonHeld ButtonMiddle
     mouse  = (fromIntegral x, fromIntegral y)

@@ -1,18 +1,18 @@
 module Field.Terrain where
 
-import Control.Monad.Cont
-import Control.Monad.State
-import Control.Arrow
-import qualified Data.Map as M
-import FRP.Yampa
+import                          Control.Arrow
+import                          Control.Monad.Cont
+import                          Control.Monad.State
+import                qualified Data.Map                       as M
+import                          FRP.Yampa
 
-import Field.CardinalDirection
-import {-# SOURCE #-} Field.Character
-import {-# SOURCE #-} Field.TerrainElements
-import Field.TerrainElementExpression
-import Message
-import Output
-import TileName
+import                          Field.CardinalDirection
+import {-# SOURCE #-}           Field.Character
+import                          Field.TerrainElementExpression
+import {-# SOURCE #-}           Field.TerrainElements
+import                          Message
+import                          Output
+import                          TileName
 
 data TerrainElement = TerrainElement {
     teCollides :: Bool,
@@ -35,7 +35,7 @@ teDefault = TerrainElement {
     teExpr = Basic Blank Original False,
     teTile = (Blank, Original),
     teTraverse = return NoEvent
-} 
+}
 
 instance Show TerrainElement where
     show = show . teExpr
@@ -45,7 +45,7 @@ instance Read TerrainElement where
 
 data Terrain = Terrain {
     tBackgroundColor :: Color,
-    tElements :: M.Map (Int, Int) TerrainElement
+    tElements        :: M.Map (Int, Int) TerrainElement
 }
     deriving (Read, Show)
 
@@ -67,6 +67,6 @@ deleteElem :: Int -> Int -> Terrain -> Terrain
 deleteElem x y t@(Terrain _ es) = t { tElements = M.update (const Nothing) (y, x) es }
 
 occupy :: Int -> Int -> Terrain -> Terrain
-occupy x y t = setElem (solidify (maybe teDefault id (getElem x y t))) x y t
+occupy x y t = setElem (solidify (Data.Maybe.fromMaybe teDefault (getElem x y t))) x y t
   where
     solidify te = te { teCollides = True }

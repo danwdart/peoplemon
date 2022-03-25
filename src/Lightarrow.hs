@@ -1,30 +1,33 @@
-{-# LANGUAGE Arrows, FlexibleContexts, Rank2Types, NoMonomorphismRestriction #-}
+{-# LANGUAGE Arrows                    #-}
+{-# LANGUAGE FlexibleContexts          #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE Rank2Types                #-}
 
 module Lightarrow where
 
-import Control.Monad.Cont
-import Control.Monad.RWS
-import Data.List
-import FRP.Yampa
-import FRP.Yampa.Geometry
-import FRP.Yampa.Task
+import           Control.Monad.Cont
+import           Control.Monad.RWS
+import           Data.List
+import           Data.Vector2
+import           FRP.Yampa
+import           FRP.Yampa.Task
 
 -- SF library
 
 newtype KeepSF a b = KeepSF { keeper :: SF a (b, KeepSF a b) }
 
 keep :: SF a b -> KeepSF a b
-keep sf = KeepSF $ kSwitch (sf &&& (constant $ keep sf)) detect continue
+keep sf = KeepSF $ kSwitch (sf &&& constant (keep sf)) detect continue
   where
     detect = constant (Event ()) >>> notYet
     continue frozen _ = next
       where
-        next = kSwitch (frozen >>> (second $ constant (KeepSF next))) detect continue 
+        next = kSwitch (frozen >>> second (constant (KeepSF next))) detect continue
 
 selfKeeper :: KeepSF a (b, Event c) -> SF a (b, Event (c, KeepSF a (b, Event c)))
 selfKeeper (KeepSF sf) = proc a -> do
     ((b, done), frozen) <- sf -< a
-    returnA -< (b, (done `attach` frozen))
+    returnA -< (b, done `attach` frozen)
 
 selfSequence :: [SF a (b, Event c)] -> SF a b
 selfSequence = runTask_ . mapM_ mkTask
@@ -34,10 +37,10 @@ triggerSequence = runTask_ . mapM_ (mkTask . (*** notYet))
 
 --timedSequence interval = runTask_ . mapM_ (mkTask . (&&& (after interval ())))
 timedSequence interval sfs = runCont k (error "timedSequence terminated")
-  where k = mapM_ (dSwont . (&&& (after interval ()))) sfs
+  where k = mapM_ (dSwont . (&&& after interval ())) sfs
 
 timedUpdateSequence :: Time -> a -> [SF a a] -> SF a a
-timedUpdateSequence interval = (runTask_ .) . foldM receiver 
+timedUpdateSequence interval = (runTask_ .) . foldM receiver
   where
     receiver result phase = mkTask $ proc _ -> do
         out    <- phase             -< result
@@ -50,13 +53,13 @@ selfAlternate f g = runTask_ . alternator
     alternator = mkTask . f >=> mkTask . g >=> alternator
 
 tackOn :: SF a a -> SF (a, Event (SF a a)) a
-tackOn sf = (first sf) `switch` (\ k -> tackOn (sf >>> k))
+tackOn sf = first sf `switch` (\ k -> tackOn (sf >>> k))
 
 taskMod :: (d -> (b, Event e)) -> (SF a (b, Event c) -> SF a d) -> Task a b c -> Task a b e
 taskMod collect modify = mkTask . (arr collect <<<) . modify . taskToSF
 
 afterInput :: a -> SF Time (Event a)
-afterInput x = (time &&& identity) >>> (arr $ uncurry (>)) >>> edge >>> arr (`tag` x)
+afterInput x = (time &&& identity) >>> arr (uncurry (>)) >>> edge >>> arr (`tag` x)
 
 flasher :: a -> a -> SF Time a
 flasher on off = constant (on, off) &&& identity >>> flipper

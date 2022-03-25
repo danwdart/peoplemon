@@ -1,15 +1,15 @@
-{-# LANGUAGE Arrows, FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module Field.Avatar (animateAvatar) where
 
-import Control.Monad.Cont
-import Control.Monad.State
-import FRP.Yampa hiding (left, right)
+import           Control.Monad.Cont
+import           Control.Monad.State
+import           FRP.Yampa           hiding (left, right)
 
-import Field.Character
+import           Field.Character
 import qualified Field.Menu
-import Field.Terrain
-import Message
+import           Field.Terrain
+import           Message
 
 animateAvatar ::  Character ->
                   SF (Terrain, Event Message) (Character, Event Message)
@@ -20,7 +20,7 @@ animateAvatar c0 = act c0 activity
                                             return x
          react     c t Pause          = pausing >> standing
          react     c t AvatarInspect  = inspecting t >> standing
-         react     c t m              = maybe standing id (reaction c t m)
+         react     c t m              = Data.Maybe.fromMaybe standing (reaction c t m)
          reaction                     = stop <.> turn <.> move
          stop                         = reactStop standing
          turn                         = reactTurn standing
@@ -42,5 +42,5 @@ inspecting t = do  c0    <- get
                         dir       = cDirection c0
                         (dx, dy)  = displacement dir
                         teM       = getElem (round x + dx) (round y + dy) t
-                   msgE  <- maybe (return NoEvent) (flip teInspect dir) teM
-                   event (return ()) posting msgE
+                   msgE  <- maybe (pure NoEvent) (`teInspect` dir) teM
+                   event (pure ()) posting msgE

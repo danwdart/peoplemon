@@ -1,37 +1,41 @@
-{-# LANGUAGE Arrows, FlexibleContexts, OverloadedStrings, NoMonomorphismRestriction #-}
+{-# LANGUAGE Arrows                    #-}
+{-# LANGUAGE FlexibleContexts          #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE OverloadedStrings         #-}
 
 module Field.Menu where
 
-import Control.Monad.Cont
-import Control.Monad.Reader
-import Control.Monad.RWS
-import qualified Data.Map as M
-import qualified Data.Text as T
-import FRP.Yampa
-import FRP.Yampa.Geometry
-import System.Random
+import           Control.Monad.Cont
+import           Control.Monad.RWS
+import           Control.Monad.Reader
+import qualified Data.Map             as M
+import qualified Data.Text            as T
+import           FRP.Yampa
+import           Data.Point2
+import           Data.Vector2
+import           System.Random
 
-import Activity
-import Controls
-import ControlsMaps
-import Field.Parameters
-import Inventory.Menu
-import Inventory.Parameters
-import LabelName
-import Lightarrow
-import Menu
-import Message
-import OfflineData
-import Output
-import Ppmn.Menu
-import Ppmn.Output
-import Ppmn.Parameters
-import Ppmn.Species
-import ProseName
-import SoundName
-import SpriteName
-import StateClass
-import TextUtil
+import           Activity
+import           Controls
+import           ControlsMaps
+import           Field.Parameters
+import           Inventory.Menu
+import           Inventory.Parameters
+import           LabelName
+import           Lightarrow
+import           Menu
+import           Message
+import           OfflineData
+import           Output
+import           Ppmn.Menu
+import           Ppmn.Output
+import           Ppmn.Parameters
+import           Ppmn.Species
+import           ProseName
+import           SoundName
+import           SpriteName
+import           StateClass
+import           TextUtil
 
 selecting k0 cancel = do
     fp <- get
@@ -61,7 +65,7 @@ personOptions cancel position =
     [ (Data, get >>= \fp -> personDetails (fpPpmn fp !! position)),
       (Status, gets fpPpmn >>= \ppmn -> personStatus (ppmn !! position)),
       (Switch, reorderPpmn fpPpmn (\p fp -> fp { fpPpmn = p }) position),
-      (Cancel, cancel () >> return ()) ]
+      (Cancel, Control.Monad.void (cancel ())) ]
 
 items k0 cancel = do
     inventory <- gets (M.elems . fpItems)
@@ -74,7 +78,7 @@ items k0 cancel = do
             (result, _) <- lift $ execRWST (itemFieldCont item) embedding iu
             continue (result, n)
     (next, k) <- choiceOverlay (menuControl >>> itemMenu run (cancel (), 0) inventory k0)
-    (result@(ItemUse { iuParams = params }), n) <- next
+    (result@ItemUse { iuParams = params }, n) <- next
     let newInventory fp = if itemStock params == 0
                             then M.delete (itemName params) (fpItems fp)
                             else M.insert (itemName params) params (fpItems fp)
@@ -92,7 +96,7 @@ avatar = do
     lift . swont $ constant (draw fp) &&& pageControl
     momentary (playSound SoundName.Accept)
   where
-    draw fp = bg >.= portrait >.= (summary fp) >.= (favorite fp)
+    draw fp = bg >.= portrait >.= summary fp >.= favorite fp
     bg od = do
         clearScreen (Dark White) od
         drawRectangle 152 64 Black (Point2 6 6) od
@@ -100,7 +104,7 @@ avatar = do
         drawRectangle 152 64 Black (Point2 6 74) od
         drawRectangle 152 64 White (Point2 4 72) od
     portrait = drawSprite AvatarPortrait (Point2 108 8)
-    summary fp@(FieldParameters { fpCounters = pc }) od = do
+    summary fp@FieldParameters { fpCounters = pc } od = do
         drawText (label Name fp `T.append` ": ") (Point2 8 8) od
         drawText (fpAvatarName fp) (Point2 56 8) od
         drawText "CATCHES: " (Point2 8 24) od
@@ -109,7 +113,7 @@ avatar = do
         drawText (padIntWith ' ' 4 (pcKills pc)) (Point2 80 40) od
         drawText "LOSSES: " (Point2 8 56) od
         drawText (padIntWith ' ' 4 (pcLosses pc)) (Point2 80 56) od
-    favorite fp@(FieldParameters { fpCounters = pc }) od = do
+    favorite fp@FieldParameters { fpCounters = pc } od = do
         drawText "FAVORITE" (Point2 8 80) od
         drawText "SPECIES:" (Point2 20 96) od
         if null (pcPlays pc)

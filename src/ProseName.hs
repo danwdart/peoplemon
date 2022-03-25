@@ -18,7 +18,7 @@ data ProseName  = AhYouOnlyHaveOne
                 | ButItFailed
                 | ButPinchYourselfBitchYoure
                 | CanIReallyHackIt
-                | CatchingPeopleIsBecomingMore 
+                | CatchingPeopleIsBecomingMore
                 | ChooseAPerson
                 | ComeBackWhenYouveGot
                 | CommaMyFavorite

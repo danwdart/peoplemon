@@ -8,18 +8,18 @@ module Ppmn.Species (
     ppmnByName
 ) where
 
-import LabelName
-import Ppmn.Species.Blamotage
-import Ppmn.Species.Ignoloof
-import Ppmn.Species.Incub
-import Ppmn.Species.Slidek
-import Ppmn.Species.Unner
-import Ppmn.Species.You
-import Ppmn.Parameters
+import           LabelName
+import           Ppmn.Parameters
+import           Ppmn.Species.Blamotage
+import           Ppmn.Species.Ignoloof
+import           Ppmn.Species.Incub
+import           Ppmn.Species.Slidek
+import           Ppmn.Species.Unner
+import           Ppmn.Species.You
 
 ppmnByName Blamotage level = atLevel level blamotageLearnMove blamotageBase
-ppmnByName Ignoloof level = atLevel level ignoloofLearnMove ignoloofBase
-ppmnByName Incub level = atLevel level incubLearnMove incubBase
-ppmnByName Slidek level = atLevel level slidekLearnMove slidekBase
-ppmnByName Unner level = atLevel level unnerLearnMove unnerBase
-ppmnByName You level = atLevel level youLearnMove youBase
+ppmnByName Ignoloof level  = atLevel level ignoloofLearnMove ignoloofBase
+ppmnByName Incub level     = atLevel level incubLearnMove incubBase
+ppmnByName Slidek level    = atLevel level slidekLearnMove slidekBase
+ppmnByName Unner level     = atLevel level unnerLearnMove unnerBase
+ppmnByName You level       = atLevel level youLearnMove youBase

@@ -1,21 +1,24 @@
-{-# LANGUAGE Arrows, FlexibleContexts, OverloadedStrings, NoMonomorphismRestriction #-}
+{-# LANGUAGE Arrows                    #-}
+{-# LANGUAGE FlexibleContexts          #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE OverloadedStrings         #-}
 
 module Activity where
 
-import Control.Monad.Reader
-import Control.Monad.State
-import qualified Data.Text as T
-import FRP.Yampa
-import FRP.Yampa.Geometry
-
-import ControlsMaps
-import Lightarrow
-import Message
-import OfflineData
-import Output
-import Ppmn.Parameters
-import qualified TextBox as TB
-import SoundName
+import           Control.Monad.Reader
+import           Control.Monad.State
+import qualified Data.Text            as T
+import           FRP.Yampa
+import           Data.Point2
+import           Data.Vector2
+import           ControlsMaps
+import           Lightarrow
+import           Message
+import           OfflineData
+import           Output
+import           Ppmn.Parameters
+import           SoundName
+import qualified TextBox              as TB
 
 stdCommentary = stdProse $ \text -> proseControl >>> TB.writer (TB.autoScrollingProse text)
 
@@ -30,12 +33,12 @@ stdProse textbox prose = do
     let ls = T.lines text
         first = init ls
         final = last ls
-    sequence_ $ map ((>>= arrowWait) . lift . swont . embed . textbox) first
+    mapM_ ((>>= arrowWait) . lift . swont . embed . textbox) first
     lift . swont $ embed (textbox final)
 
 fadeTo color duration = ask >>= \(Embedding embed) -> lift . swont $ embed fade
   where
-    fade = timedSequence t (map mask colors ++ [final])
+    fade = timedSequence t (map mask colors <> [final])
     colors = [Translucent (Translucent color), Translucent color, color, color]
     t = duration / fromIntegral (length colors)
     mask color = constant (drawRectangle 160 144 color (Point2 0 0), NoEvent)
@@ -59,7 +62,7 @@ stdWait output = ask >>= \(Embedding embed) -> lift . swont $ embed (wait output
 
 arrowWait output = ask >>= \(Embedding embed) -> lift . swont $ embed $ (wait output >>> first draw) >>> arrowSound
   where
-    draw = (identity &&& (constant 0.5 >>> TB.waitArrow)) >>> (arr $ uncurry (>.=))
+    draw = (identity &&& (constant 0.5 >>> TB.waitArrow)) >>> arr (uncurry (>.=))
 
 wait output = constant output &&& (proseControl >>> arr (any isProseScroll) >>> edge)
 
@@ -96,7 +99,7 @@ stdHPEffect delta = do
 
 changeHp oldHP newHP maxHP = changer &&& after duration newHP
   where
-    duration = 1.5 * (abs $ newHP - oldHP) / maxHP
+    duration = 1.5 * abs (newHP - oldHP) / maxHP
     changer = timedInterp oldHP newHP duration
 
 playCry p = momentary (playSoloSound (ppmnCry p))

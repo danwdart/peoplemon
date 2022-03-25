@@ -1,48 +1,50 @@
-{-# LANGUAGE Arrows, FlexibleContexts, OverloadedStrings #-}
+{-# LANGUAGE Arrows            #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Field.Scripts.Ditfy (ditfy) where
 
-import Control.Monad.Cont
-import Control.Monad.State
-import qualified Data.Text as T
-import FRP.Yampa
-import System.Random
+import           Control.Monad.Cont
+import           Control.Monad.State
+import qualified Data.Text               as T
+import           FRP.Yampa
+import           System.Random
 
-import Activity
-import Field.Activity
-import Field.Anchor
-import Field.Battles
-import Field.CardinalDirection
-import Field.Character
-import Field.Trainer
-import Field.Locale
-import Field.Parameters
-import Field.Personae
-import Field.Terrain
-import Inventory.Items.Booch
-import LabelName
-import Lightarrow
-import Message
-import MusicName
-import OfflineData
-import Output
-import Ppmn.Parameters
-import Ppmn.Species
-import ProseName
-import SpriteName
-import StateClass
+import           Activity
+import           Field.Activity
+import           Field.Anchor
+import           Field.Battles
+import           Field.CardinalDirection
+import           Field.Character
+import           Field.Locale
+import           Field.Parameters
+import           Field.Personae
+import           Field.Terrain
+import           Field.Trainer
+import           Inventory.Items.Booch
+import           LabelName
+import           Lightarrow
+import           Message
+import           MusicName
+import           OfflineData
+import           Output
+import           Ppmn.Parameters
+import           Ppmn.Species
+import           ProseName
+import           SpriteName
+import           StateClass
 
 receptionist index rg = act c0 activity
   where  activity      = do  (m, t)  <- rest
                              c       <- get
                              react0 c t m
-         react0 c t m  = maybe activity id (reactSpeak speech0 c t m)
+         react0 c t m  = Data.Maybe.fromMaybe activity (reactSpeak speech0 c t m)
          speech0       = do  posting (FieldAction action0)
                              reactingForever react1
          action0       = do  welcome
                              introduction
                              offer
-         react1 c t m  = maybe rest id (reactSpeak speech1 c t m)
+         react1 c t m  = Data.Maybe.fromMaybe rest (reactSpeak speech1 c t m)
          speech1       = do  posting (FieldAction action1)
                              rest
          action1       = do  welcome
@@ -72,7 +74,7 @@ receptionist index rg = act c0 activity
 veteran index rg = act c0 activity
   where  activity  = do  (m, t)  <- wandering 0.5 ((-5, -5), (-2, -1))
                          c       <- get
-                         maybe (return ()) id (react c t m)
+                         Data.Maybe.fromMaybe (return ()) (react c t m)
                          activity
          react     = reactSpeak speech
          speech    = speaking (prose PeopleAtAHighLevel)
@@ -82,7 +84,7 @@ veteran index rg = act c0 activity
                                        cRandomGenerator  = rg }
 
 client index rg = act c0 (reactingForever react)
-  where  react c t m  = maybe rest id (reactSpeak speech c t m)
+  where  react c t m  = Data.Maybe.fromMaybe rest (reactSpeak speech c t m)
          speech       = do  speaking (prose ThisCompanyIsOnHard)
                             rest
          rest         = looking West 0.8
@@ -94,7 +96,7 @@ client index rg = act c0 (reactingForever react)
 coffeeBreak index rg = act c0 activity
   where  activity  = do  (m, t)  <- wandering 0.5 ((-2, -10), (3, -9))
                          c       <- get
-                         maybe (return ()) id (react c t m)
+                         Data.Maybe.fromMaybe (return ()) (react c t m)
                          activity
          react     = reactSpeak speech
          speech    = speaking (prose IUsedToThinkMy)
@@ -104,7 +106,7 @@ coffeeBreak index rg = act c0 activity
                                        cRandomGenerator  = rg }
 
 digger index rg = act c0 (reactingForever react)
-  where  react c t m  = maybe rest id (reactSpeak speech c t m)
+  where  react c t m  = Data.Maybe.fromMaybe rest (reactSpeak speech c t m)
          speech       = do  speaking (prose DamnIPickedTheWrong)
                             rest
          rest         = looking East 1
@@ -113,7 +115,7 @@ digger index rg = act c0 (reactingForever react)
                                            cRandomGenerator  = rg }
 
 interviewee index rg = act c0 (reactingForever react)
-  where  react c t m  = maybe rest id (reactSpeak speech c t m)
+  where  react c t m  = Data.Maybe.fromMaybe rest (reactSpeak speech c t m)
          speech       = do  speaking (prose AmIInTheWrong)
                             rest
          rest         = do  x <- glancing 0.8
@@ -126,13 +128,13 @@ interviewee index rg = act c0 (reactingForever react)
             | cDirection c == West  = c { cDirection = East }
             | otherwise             = c
 
-data Trainer = Trainer {  tChallenge  :: FieldParameters -> T.Text,
-                          tConcede    :: ProseName,
-                          tPpmn       :: [Ppmn],
-                          tName       :: LabelName,
-                          tReconcile  :: FieldParameters -> T.Text,
-                          tSight      :: Double,
-                          tSprite     :: SpriteName }
+data Trainer = Trainer {  tChallenge :: FieldParameters -> T.Text,
+                          tConcede   :: ProseName,
+                          tPpmn      :: [Ppmn],
+                          tName      :: LabelName,
+                          tReconcile :: FieldParameters -> T.Text,
+                          tSight     :: Double,
+                          tSprite    :: SpriteName }
 
 trainerActivity :: Trainer -> CharacterActivity (Message, Terrain)
 trainerActivity t = do  antagonizing (tSight t) provoked challenging
@@ -149,7 +151,7 @@ trainerActivity t = do  antagonizing (tSight t) provoked challenging
                                trainerBattle (tName t) (tSprite t) (tConcede t) (tPpmn t)
                                anchor explore
 
-headcount index rg = act c0 (trainerActivity t >> return ())
+headcount index rg = act c0 (Control.Monad.void (trainerActivity t))
   where  t   = Trainer {  tChallenge  = prose YourHeadcountIsMeaninglessIf,
                           tConcede    = WhatTheFuckPeople,
                           tPpmn       = [  ppmnByName Blamotage 3,
@@ -163,7 +165,7 @@ headcount index rg = act c0 (trainerActivity t >> return ())
                                    cRandomGenerator  = rg }
 
 mazedude index rg = second commander >>> act c0 activity
-  where  activity       = trainerActivity t >> return ()
+  where  activity       = Control.Monad.void (trainerActivity t)
          t              = Trainer {  tChallenge  = prose ThisIsAWildPlace,
                                      tConcede    = WellPoop,
                                      tPpmn       = [  ppmnByName Unner 2,
@@ -180,7 +182,7 @@ mazedude index rg = second commander >>> act c0 activity
          turner (r:rs)  = after 1 (CharacterTurn r) `switchE` const (turner rs)
          rs0            = South : East : rs0
 
-champion index rg = act c0 (trainerActivity t >> return ())
+champion index rg = act c0 (Control.Monad.void (trainerActivity t))
   where  t   = Trainer {  tChallenge  = prose TheTopPeopleCatchersDont,
                           tConcede    = WowMaybeIllTakeA,
                           tPpmn       = [ppmnByName Slidek 10],
@@ -192,7 +194,7 @@ champion index rg = act c0 (trainerActivity t >> return ())
                                     cIndex            = index,
                                     cRandomGenerator  = rg }
 
-matchup index rg = act c0 (trainerActivity t >> return ())
+matchup index rg = act c0 (Control.Monad.void (trainerActivity t))
   where  t   = Trainer {  tChallenge  = prose YourTeamMustBeGetting,
                           tConcede    = BrutalManIWonderWhy,
                           tPpmn       = [  ppmnByName Incub 3,
@@ -217,13 +219,13 @@ acts = [  receptionist,
           champion,
           matchup ]
 
-uniqueCharacters rg0 = (rgN, map apply (zip acts (zip indices rgs)))
+uniqueCharacters rg0 = (rgN, zipWith (curry apply) acts (zip indices rgs))
   where  apply             = uncurry (uncurry . ($))
          indices           = [1 .. length acts]
          nextRg _ (r, rs)  = let (r1, r2) = split r in (r2, r1:rs)
          (rgN, rgs)        = foldr nextRg (rg0, []) acts
 
-itemHolders = map (uncurry ($)) (items `zip` [1 .. length items])
+itemHolders = zipWith (curry (uncurry ($))) items [1 .. length items]
 
 items = [ holdItem booch (6, -18) nullOut False ]
 
@@ -245,7 +247,7 @@ encounterer rg = runCont (runStateT (loop 0) rg) final
             | s < 10     = return (s + 1)
             | otherwise  = do  let  x   = cPosition a
                                m  <- encounter (min ((s - 10) / 100) (1/4)) (risks x)
-                               let  sf  = constant m &&& (now ())
+                               let  sf  = constant m &&& now ()
                                lift (dSwont sf)
                                return (event (s + 1) (const 0) m)
          listen          = proc (a, m) -> do
@@ -259,8 +261,8 @@ risks (x, y)
     | otherwise  = map risk [Incub, Unner, Slidek, Ignoloof, Blamotage]
   where  risk name = (ppmnByName name (round (sqrt ((-1) * y))), 1)
 
-isTraverse  AvatarTraverse  = True
-isTraverse  _               = False
+isTraverse  AvatarTraverse = True
+isTraverse  _              = False
 
 ditfy t0 rg0 = proc (avatar, news) -> do
     ((d, s, t), report)          <- main                -< (avatar, news)

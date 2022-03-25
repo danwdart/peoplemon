@@ -1,4 +1,4 @@
-# pplmonad
+# peoplemon
 
 My take on a classic.
 
@@ -6,7 +6,7 @@ My take on a classic.
 
 ### System dependencies ###
 
-To build and run pplmonad you need the following software on your system:
+To build and run peoplemon you need the following software on your system:
 
 * [Haskell Platform](https://www.haskell.org/platform/)
 * [Simple DirectMedia Layer 2 (SDL2)](https://libsdl.org)
@@ -22,19 +22,19 @@ Install them using your system package manager: APT for Debian users, Homebrew f
 
 ### Stack ###
 
-pplmonad is a program written in Haskell using tools provided in the Haskell Platform. One of them, [Stack](https://docs.haskellstack.org/en/stable/README/), is an interface to the rest of them. Stack runs the [Glasgow Haskell Compiler (GHC)](https://www.haskell.org/ghc/) on the source code and uses [Cabal](https://www.haskell.org/cabal/) to manage packages (libraries) from the [Stackage](https://www.stackage.org) server.
+peoplemon is a program written in Haskell using tools provided in the Haskell Platform. One of them, [Stack](https://docs.haskellstack.org/en/stable/README/), is an interface to the rest of them. Stack runs the [Glasgow Haskell Compiler (GHC)](https://www.haskell.org/ghc/) on the source code and uses [Cabal](https://www.haskell.org/cabal/) to manage packages (libraries) from the [Stackage](https://www.stackage.org) server.
 
-Use the following command to make Stack build pplmonad:
+Use the following command to make Stack build peoplemon:
 
     stack build
 
 After the build process is complete, run the resulting binary with:
 
-    stack exec pplmonad
+    stack exec peoplemon
 
 ### Haskell dependencies ###
 
-The libraries that pplmonad depends upon are:
+The libraries that peoplemon depends upon are:
 
 * [array](https://hackage.haskell.org/package/array)
 * [containers](https://hackage.haskell.org/package/containers)
@@ -53,7 +53,7 @@ You may need to run `stack install` on these package names before they are avail
 
 ### Offline data ###
 
-At run time pplmonad loads files from a directory called `offline` in the current working directory. These files are \"offline data,\" and include images, sound clips, and text files. The program terminates unless the following files exist and are well-formed:
+At run time peoplemon loads files from a directory called `offline` in the current working directory. These files are \"offline data,\" and include images, sound clips, and text files. The program terminates unless the following files exist and are well-formed:
 
 * offline/maps/last-edited.txt
 * offline/textures/default.png
@@ -65,7 +65,7 @@ The contents of the default map file, \"offline/maps/last-edited.txt\", must be 
 
     Terrain {tBackgroundColor = White, tElements = fromList []}
 
-In the future pplmonad will handle missing offline data more gracefully.
+In the future peoplemon will handle missing offline data more gracefully.
 
 ## Controls ##
 
@@ -92,7 +92,7 @@ In the future pplmonad will handle missing offline data more gracefully.
 
 ## Field Editor ##
 
-pplmonad includes a direct-manipulation interface called the Field Editor for creating and editing maps. While running pplmonad, during the Field phase, turn the Field Editor on and off by pressing the Tab key. When it is on, you can use the mouse to alter the layout of the tiles that comprise the current terrain and save it as offline data.
+peoplemon includes a direct-manipulation interface called the Field Editor for creating and editing maps. While running peoplemon, during the Field phase, turn the Field Editor on and off by pressing the Tab key. When it is on, you can use the mouse to alter the layout of the tiles that comprise the current terrain and save it as offline data.
 
 The Field Editor makes changes to the `Terrain` structure used in the current `locale`. It makes those changes through the current *tool*, which is one of the following:
 
@@ -109,7 +109,7 @@ You can use a different tool by pressing the \"change tool\" key (see \"Controls
 
 You can see which tool is the current tool by moving the mouse cursor to the top of the screen. A panel will appear that displays the name of the current tool along with its current options. Some of these options are variable and depicted as such with a special marker. Click the markers with the mouse to change the option's value. The subsequent details of changing the value differ between different options; you can find them the tool descriptions below.
 
-Also in the panel is the save button. Click this button to save the current map to an offline data file called \"offline/maps/last-edited.txt\". This is the default map that pplmonad loads at startup, so you will immediately see your saved work the next time you run.
+Also in the panel is the save button. Click this button to save the current map to an offline data file called \"offline/maps/last-edited.txt\". This is the default map that peoplemon loads at startup, so you will immediately see your saved work the next time you run.
 
 * * *
 

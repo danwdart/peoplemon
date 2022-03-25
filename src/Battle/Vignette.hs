@@ -1,27 +1,29 @@
-{-# LANGUAGE FlexibleContexts, NoMonomorphismRestriction, OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts          #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE OverloadedStrings         #-}
 
 module Battle.Vignette where
 
-import Control.Monad.Reader
-import Control.Monad.State
-import Data.List
-import Data.Maybe
-import FRP.Yampa
-import FRP.Yampa.Geometry
-
-import Activity
-import Battle.Activity
-import Battle.Output
-import Battle.Parameters
-import Lightarrow
-import OfflineData
-import Output
-import Ppmn.Output
-import Ppmn.Parameters
-import SoundName
-import SpriteName
-import StateClass
-import TextBox as TB
+import           Control.Monad.Reader
+import           Control.Monad.State
+import           Data.List
+import           Data.Maybe
+import           FRP.Yampa
+import           Data.Point2
+import           Data.Vector2
+import           Activity
+import           Battle.Activity
+import           Battle.Output
+import           Battle.Parameters
+import           Lightarrow
+import           OfflineData
+import           Output
+import           Ppmn.Output
+import           Ppmn.Parameters
+import           SoundName
+import           SpriteName
+import           StateClass
+import           TextBox              as TB
 
 wildBattleIntro = do
     facingOffWild
@@ -61,7 +63,7 @@ trainerBattleDenouement = do
     local (const embed2) $ do
         n1 <- stdLecture (prose trainerProse)
         stdWait n1
-        return (embed2 `compEmbed` embedArr (n1 >.=))
+        pure (embed2 `compEmbed` embedArr (n1 >.=))
 
 avatarResponse = do
     drawEnemy <- gets sceneSecond
@@ -94,7 +96,7 @@ deployEnemy = do
     let embed3 = embedArr ((narration >.= drawEnemy) >.=)
     local (`compEmbed` embed3) (playCry enemy)
     stdHesitation (drawEnemy >.= narration)
-    
+
 recall = do
     drawEnemy <- gets sceneSecond
     drawEnemySummary <- gets sceneSecondSummary
@@ -115,7 +117,7 @@ faint = do
         descending object
     let embed2 = embedArr (>.= (drawOther >.= drawOtherSummary))
     local (const embed2) (stdLecture faintProse >>= arrowWait)
-     
+
 facingOffWild = gets (ppmnSprite . battleEnemy) >>= facingOff
 
 facingOffTrainer = facingOff
@@ -176,13 +178,13 @@ steppingForwardTrainer sprite = over 0.25 $ slide p0 p1 0.25 sprite
 descending object = over 0.25 $ slide p0 p1 0.2 (ppmnSprite object) >>> arr (>.= blank)
   where
     p0 = ppmnPosition object
-    p1 = Point2 (point2X p0) (point2Y p0 + 56) 
+    p1 = Point2 (point2X p0) (point2Y p0 + 56)
     sprite = ppmnSprite object
     blank = drawRectangle 56 56 White p1
 
 capture p flashOffset = do
-    let frames = map constant $ intersperse nullOut drawFlashes
-        drawFlashes = map (flip drawSprite (x .+^ flashOffset)) flashes
+    let frames = constant <$> intersperse nullOut drawFlashes
+        drawFlashes = fmap (`drawSprite` (x .+^ flashOffset)) flashes
         x      = ppmnPosition p
         sprite = ppmnSprite p
         shrink = slideStretch 1 0 x (x .+^ vector2 28 56) 0.5 sprite
@@ -193,8 +195,8 @@ capture p flashOffset = do
     flashes = PPhoneFlash1 : PPhoneFlash2 : PPhoneFlash3 : flashes
 
 release p flashOffset = do
-    let frames = map constant $ intersperse nullOut drawFlashes
-        drawFlashes = map (flip drawSprite (x .+^ flashOffset)) flashes
+    let frames = constant <$> intersperse nullOut drawFlashes
+        drawFlashes = fmap (`drawSprite` (x .+^ flashOffset)) flashes
         x      = ppmnPosition p
         sprite = ppmnSprite p
         expand = slideStretch 0 1 (x .+^ vector2 28 56) x 0.5 sprite

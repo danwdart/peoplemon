@@ -1,4 +1,4 @@
-% Pplmonad | Output.Window
+% Peoplemon | Output.Window
 %
 % October 11, 2018
 

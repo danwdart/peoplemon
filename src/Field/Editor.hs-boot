@@ -1,7 +1,8 @@
 module Field.Editor where
 
 import FRP.Yampa
-import FRP.Yampa.Geometry
+import           Data.Point2
+import           Data.Vector2
 
 import Controls
 import Field.Terrain

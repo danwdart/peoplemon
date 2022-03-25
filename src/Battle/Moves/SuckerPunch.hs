@@ -1,27 +1,29 @@
-{-# LANGUAGE Arrows, FlexibleContexts, NoMonomorphismRestriction #-}
+{-# LANGUAGE FlexibleContexts          #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 
 module Battle.Moves.SuckerPunch (
     suckerPunchEnemy,
     suckerPunchFriend
 ) where
 
-import Control.Monad.Reader
-import Control.Monad.State
-import FRP.Yampa
-import FRP.Yampa.Geometry
+import           Control.Monad.Reader
+import           Control.Monad.State
+import           FRP.Yampa
+import           Data.Point2
+import           Data.Vector2
 
-import Activity
-import Battle.Activity
-import Battle.Output
-import Battle.Parameters
-import LabelName
-import Lightarrow
-import OfflineData
-import Output
-import Ppmn.Output
-import Ppmn.Parameters
-import SoundName
-import SpriteName
+import           Activity
+import           Battle.Activity
+import           Battle.Output
+import           Battle.Parameters
+import           LabelName
+import           Lightarrow
+import           OfflineData
+import           Output
+import           Ppmn.Output
+import           Ppmn.Parameters
+import           SoundName
+import           SpriteName
 
 suckerPunchFriend = suckerPunch { mpCont = move animation }
 suckerPunchEnemy = suckerPunch { mpCont = move animation }
@@ -51,7 +53,7 @@ localMove animation = do
             local (const embed) stdEffectReport
         success = stdMoveExecute effect report
         effect out = do
-            local (const $ embedArr (>.= (summary >.= out))) $ animation
+            local (const $ embedArr (>.= (summary >.= out))) animation
             damage <- gets moveDamage
             let embed = Embedding (>>> first (arr (scene >.=)))
             local (const embed) $ stdDamageEffect out damage

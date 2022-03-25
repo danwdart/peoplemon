@@ -1,23 +1,26 @@
-{-# LANGUAGE Arrows, OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Output where
 
-import Control.Monad
-import Control.Concurrent
-import Data.Bool
-import qualified Data.Text as T
-import Data.Word
-import SDL hiding (identity, Event)
-import SDL.Mixer
-import SDL.Raw.Mixer
-import FRP.Yampa
-import FRP.Yampa.Geometry
+import           Control.Concurrent
+import           Control.Monad
+import           Data.Bool
+import           Data.Functor
+import           Data.Maybe
+import           Data.Point2
+import qualified Data.Text          as T
+import           Data.Vector2
+import           Data.Word
+import           FRP.Yampa
+import           SDL                hiding (Event, identity)
+import           SDL.Mixer
+import           SDL.Raw.Mixer
 
-import MusicName
-import OfflineData
-import SpriteName
-import SoundName
-import TileName
+import           MusicName
+import           OfflineData
+import           SoundName
+import           SpriteName
+import           TileName
 
 data Color = Black
            | Blue
@@ -37,7 +40,7 @@ colorRGBA Black               = V4 0 0 0 255
 colorRGBA Blue                = V4 0 0 255 255
 colorRGBA Cyan                = V4 0 255 255 255
 colorRGBA (Dark color)        = V4 (darken r) (darken g) (darken b) a
-  where 
+  where
     darken = (`div` 2)
     V4 r g b a = colorRGBA color
 colorRGBA Green               = V4 0 255 0 255
@@ -49,7 +52,7 @@ colorRGBA Magenta             = V4 255 0 255 255
 colorRGBA Red                 = V4 255 0 0 255
 colorRGBA (Translucent color) = V4 r g b (a `div` 2)
   where
-    V4 r g b a = colorRGBA color 
+    V4 r g b a = colorRGBA color
 colorRGBA White               = V4 255 255 255 255
 colorRGBA Yellow              = V4 255 255 0 255
 
@@ -89,11 +92,11 @@ copyMod orient (V4 r g b a) renderer texture source dest = do
         rotate = case orient of
             TurnL -> -90
             TurnR -> 90
-            _       -> 0
+            _     -> 0
     copyEx renderer texture source dest rotate Nothing (V2 flipX flipY)
     textureColorMod texture $= oldColor
     textureAlphaMod texture $= oldAlpha
-    
+
 data DrawOrientation = Original | FlipX | FlipY | FlipBoth | TurnL | TurnR
     deriving (Enum, Eq, Read, Show)
 
@@ -133,16 +136,16 @@ drawText text (Point2 x y) od = foldMap (uncurry draw) typesetting
     typesetting = snd $ T.foldr setChar (fromIntegral $ 8 * (T.length text - 1), []) text
     setChar c (offset, zipped) = (offset - 8, (c, offset) : zipped)
 
-drawTextScaled factor text (Point2 x y) od = do 
+drawTextScaled factor text (Point2 x y) od = do
     scale <- get (rendererScale (odRenderer od))
     rendererScale (odRenderer od) $= (* realToFrac factor) <$> scale
-    drawText text (Point2 (x / factor) (y / factor)) od 
+    drawText text (Point2 (x / factor) (y / factor)) od
     rendererScale (odRenderer od) $= scale
 
-sentenceCase = (uncurry T.append) <<< (first T.toUpper) . (T.splitAt 1)
+sentenceCase = uncurry T.append <<< first T.toUpper . T.splitAt 1
 
 sentence :: Char -> [T.Text] -> T.Text
-sentence punctuation = sentenceCase . (flip T.snoc punctuation) . T.intercalate " "
+sentence punctuation = sentenceCase . (`T.snoc` punctuation) . T.intercalate " "
 
 drawRectangle :: Double -> Double -> Color -> Point2 Double -> OfflineData -> IO ()
 drawRectangle width height color (Point2 x y) od = do
@@ -182,11 +185,11 @@ playSoloSound name od = do
 playRepeatingMusic :: MusicName -> OfflineData -> IO ()
 playRepeatingMusic name od = do
     mLast <- playedLast 2
-    let mIO = mLast >>= return . continue
-    maybe play id mIO
+    let mIO = mLast Data.Functor.<&> continue
+    Data.Maybe.fromMaybe play mIO
     return ()
   where
-    continue = bool <$> (const play) <*> ignore <*> (== music)
+    continue = bool <$> const play <*> ignore <*> (== music)
     play = changeRepeatingMusic name od
     music = odGetMusic od name
     ignore = const (return ())
@@ -201,7 +204,7 @@ restartRepeatingMusic name od = do
     return ()
 
 changeRepeatingMusic :: MusicName -> OfflineData -> IO ()
-changeRepeatingMusic name od = forkOS action >> return ()
+changeRepeatingMusic name od = void (forkOS action)
   where
     action = do
         vol <- getVolume (2 :: SDL.Mixer.Channel)
@@ -217,7 +220,7 @@ changeRepeatingMusic name od = forkOS action >> return ()
                 playOn 1 Forever (odGetMusic od name)
                 return ()
 
-playMusicWithIntro introName length mainName od = forkOS action >> return ()
+playMusicWithIntro introName length mainName od = void (forkOS action)
   where
     mainMusic = odGetMusic od mainName
     playMain pending = do
@@ -242,7 +245,7 @@ stopMusic od = do
     setVolume 128 (2 :: SDL.Mixer.Channel)
     halt 1
 
-fadeOutMusic od = forkOS action >> return ()
+fadeOutMusic od = void (forkOS action)
   where
     action = do
         vol <- getVolume (2 :: SDL.Mixer.Channel)
@@ -257,7 +260,7 @@ fadeOutMusic od = forkOS action >> return ()
 soundTrigger :: SoundName -> SF (Event a) (OfflineData -> IO ())
 soundTrigger name = arr player
   where
-    player NoEvent = const $ return ()
+    player NoEvent   = const $ return ()
     player (Event _) = playSound name
 
 ballisticArc (Point2 x0 y0) (Point2 x1 y1) height t = Point2 x y

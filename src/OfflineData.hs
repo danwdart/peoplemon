@@ -1,28 +1,28 @@
 module OfflineData where
 
-import Control.Exception
-import Control.Monad
-import qualified Data.Map as M
-import Data.Maybe
-import qualified Data.Text as T
-import qualified Data.Text.IO as TIO
-import SDL
-import qualified SDL.Image as Image
-import qualified SDL.Mixer as Mixer
-import System.Environment.Executable
-import System.FilePath.Posix
-import System.IO.Error
+import                          Control.Exception
+import                          Control.Monad
+import                qualified Data.Map                      as M
+import                          Data.Maybe
+import                qualified Data.Text                     as T
+import                qualified Data.Text.IO                  as TIO
+import                          SDL
+import                qualified SDL.Image                     as Image
+import                qualified SDL.Mixer                     as Mixer
+import                          System.Environment.Executable
+import                          System.FilePath.Posix
+import                          System.IO.Error
 
-import Field.MapName
-import {-# SOURCE #-} Field.Terrain
-import LabelName
-import MusicName
-import ProseName
-import SpriteName
-import SoundName
-import StateClass
-import TextUtil
-import TileName
+import                          Field.MapName
+import {-# SOURCE #-}           Field.Terrain
+import                          LabelName
+import                          MusicName
+import                          ProseName
+import                          SoundName
+import                          SpriteName
+import                          StateClass
+import                          TextUtil
+import                          TileName
 
 defaultTexturePath = "offline/textures/default.png"
 
@@ -51,19 +51,19 @@ mapPaths :: [(MapName, String)]
 mapPaths = [(name, "offline/maps/" ++ show name ++ ".txt") | name <- [toEnum 0 ..]]
 
 data OfflineData = OfflineData {
-    odRenderer :: Renderer,
-    odGetSprite :: SpriteName -> Texture,
-    odGetTile :: TileName -> Texture,
-    odGetGlyph :: Char -> Texture,
-    odGetSound :: SoundName -> Mixer.Chunk,
-    odGetMusic :: MusicName -> Mixer.Chunk,
-    odGetLabel :: LabelName -> T.Text,
-    odGetProse :: ProseName -> T.Text,
+    odRenderer   :: Renderer,
+    odGetSprite  :: SpriteName -> Texture,
+    odGetTile    :: TileName -> Texture,
+    odGetGlyph   :: Char -> Texture,
+    odGetSound   :: SoundName -> Mixer.Chunk,
+    odGetMusic   :: MusicName -> Mixer.Chunk,
+    odGetLabel   :: LabelName -> T.Text,
+    odGetProse   :: ProseName -> T.Text,
     odGetTerrain :: MapName -> Terrain
 }
 
 loadOfflineData :: Renderer -> IO OfflineData
-loadOfflineData renderer = do 
+loadOfflineData renderer = do
     exePath <- getExecutablePath
     let resourcesPath = takeDirectory (takeDirectory exePath) </> "Resources"
 
@@ -79,17 +79,17 @@ loadOfflineData renderer = do
     music <- mapM Mixer.load $ fmap (resourcesPath </>) (M.fromList musicPaths)
     labels <- mapM (fmap T.strip . handle stringFail . TIO.readFile) $ fmap (resourcesPath </>) (M.fromList labelPaths)
     prose <- mapM (fmap T.strip . handle stringFail . TIO.readFile) $ fmap (resourcesPath </>) (M.fromList prosePaths)
-    maps <- mapM (liftM T.unpack . handle stringFail . TIO.readFile) $ fmap (resourcesPath </>) (M.fromList mapPaths)
+    maps <- mapM (fmap T.unpack . handle stringFail . TIO.readFile) $ fmap (resourcesPath </>) (M.fromList mapPaths)
     return OfflineData {
         odRenderer = renderer,
-        odGetSprite = (maybe defaultTexture id) . (flip M.lookup sprites),
-        odGetTile = (maybe defaultTexture id) . (flip M.lookup tiles),
-        odGetGlyph = (maybe defaultTexture id) . (flip M.lookup glyphs),
-        odGetSound = fromJust . (flip M.lookup sounds),
-        odGetMusic = fromJust . (flip M.lookup music),
-        odGetLabel = (maybe defaultString id) . (flip M.lookup labels),
-        odGetProse = (maybe defaultString id) . (flip M.lookup prose),
-        odGetTerrain = (maybe Field.Terrain.empty read) . (flip M.lookup maps)
+        odGetSprite = maybe defaultTexture id . (`M.lookup` sprites),
+        odGetTile = maybe defaultTexture id . (`M.lookup` tiles),
+        odGetGlyph = maybe defaultTexture id . (`M.lookup` glyphs),
+        odGetSound = fromJust . (`M.lookup` sounds),
+        odGetMusic = fromJust . (`M.lookup` music),
+        odGetLabel = maybe defaultString id . (`M.lookup` labels),
+        odGetProse = maybe defaultString id . (`M.lookup` prose),
+        odGetTerrain = maybe Field.Terrain.empty read . (`M.lookup` maps)
     }
 
 type OfflineIO = OfflineData -> IO ()

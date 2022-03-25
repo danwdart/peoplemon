@@ -2,11 +2,11 @@
 
 module Field.TerrainElements.Habitat where
 
-import Field.Activity
-import Field.Terrain
-import Field.TerrainElementExpression
-import Ppmn.Parameters
-import Ppmn.Species
+import           Field.Activity
+import           Field.Terrain
+import           Field.TerrainElementExpression
+import           Ppmn.Parameters
+import           Ppmn.Species
 
 habitat rate risks' te@(teExpr -> Habitat _ risks expr) = te {
     teExpr = Habitat rate (risks ++ map riskExpr risks') expr,

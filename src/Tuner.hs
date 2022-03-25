@@ -3,8 +3,8 @@
 module Tuner where
 
 -- requires BearRiver and Dunai
-import Control.Monad.Trans.MStreamF (runReaderS, runReaderS_, readerS)
-import FRP.Yampa as Y hiding (left, right)
+import           Control.Monad.Trans.MStreamF (readerS, runReaderS, runReaderS_)
+import           FRP.Yampa                    as Y hiding (left, right)
 
 transform automaton = readerS msf
   where

@@ -2,22 +2,23 @@
 
 module Field.Output where
 
-import FRP.Yampa.Geometry
+import           Data.Point2
+import           Data.Vector2
 
-import Data.Foldable
-import Field.Terrain
-import Field.TerrainElementExpression
-import Field.Character
-import OfflineData
-import Output
-import SpriteName
+import           Data.Foldable
+import           Field.Character
+import           Field.Terrain
+import           Field.TerrainElementExpression
+import           OfflineData
+import           Output
+import           SpriteName
 
-screenCenterOffset = vector2 64 64 
+screenCenterOffset = vector2 64 64
 
-drawCharacter (Character { cDraw = draw, cPosition = (x, y) }) = draw (Point2 (x * 16) (y * 16 - 4))
+drawCharacter Character { cDraw = draw, cPosition = (x, y) } = draw (Point2 (x * 16) (y * 16 - 4))
 
-drawTerrainElement TerrainElement { teTile = (tile, orientation), teExpr = Habitat _ _ _ } p x = drawXlatedTile tile orientation p x >.= drawXlatedSprite Wifi p x
-drawTerrainElement TerrainElement { teTile = (tile, orientation), teExpr = Portal _ _ _ (Habitat _ _ _) } p x = drawXlatedTile tile orientation p x >.= drawXlatedSprite Wifi p x
+drawTerrainElement TerrainElement { teTile = (tile, orientation), teExpr = Habitat {} } p x = drawXlatedTile tile orientation p x >.= drawXlatedSprite Wifi p x
+drawTerrainElement TerrainElement { teTile = (tile, orientation), teExpr = Portal _ _ _ (Habitat {}) } p x = drawXlatedTile tile orientation p x >.= drawXlatedSprite Wifi p x
 drawTerrainElement TerrainElement { teTile = (tile, orientation) } p x = drawXlatedTile tile orientation p x
 
 drawTerrain terrain xlation = foldl' (>.=) clear $ mapWithIndices (uncurry tiler) elements

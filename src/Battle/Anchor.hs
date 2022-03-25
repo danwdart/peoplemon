@@ -1,35 +1,37 @@
-{-# LANGUAGE Arrows, FlexibleContexts, OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Battle.Anchor (anchor) where
 
-import Control.Monad.Cont
-import Control.Monad.State
-import Control.Monad.Reader
-import Control.Monad.RWS
-import qualified Data.Map as M
-import FRP.Yampa
-import FRP.Yampa.Geometry
-import System.Random
+import           Control.Monad.Cont
+import           Control.Monad.RWS
+import           Control.Monad.Reader
+import           Control.Monad.State
+import qualified Data.Map             as M
+import           FRP.Yampa
+import           Data.Point2
+import           Data.Vector2
+import           System.Random
 
-import Activity
-import Battle.Moves
-import Battle.Output
-import Battle.Parameters
-import Battle.Vignette
-import ControlsMaps
-import Inventory.Menu
-import Inventory.Parameters
-import LabelName
-import Lightarrow
-import Menu
-import Message
-import OfflineData
-import Ppmn.Menu
-import Ppmn.Parameters
-import ProseName
-import TextBox as TB
+import           Activity
+import           Battle.Moves
+import           Battle.Output
+import           Battle.Parameters
+import           Battle.Vignette
+import           ControlsMaps
+import           Inventory.Menu
+import           Inventory.Parameters
+import           LabelName
+import           Lightarrow
+import           Menu
+import           Message
+import           OfflineData
+import           Ppmn.Menu
+import           Ppmn.Parameters
+import           ProseName
+import           TextBox              as TB
 
-anchor exit = anchorLoop 0 exit
+anchor = anchorLoop 0
 
 anchorLoop k0 exit = do
     modify (\bp -> bp { bpExit = exit })
@@ -46,7 +48,7 @@ anchorLoop k0 exit = do
         embedding = embedArr ((scene >.= summary >.= TB.drawConstant "") >.=)
     k <- local (embedding `compEmbed`) (choiceOverlay menu >>= (\(next, k) -> next >> return k))
     anchorLoop k exit
-    
+
 people = selectPpmn ChooseAPerson bpPpmn (personMenu personOptions)
 
 personOptions position =
@@ -98,7 +100,7 @@ items cancel = do
             local (const $ embedArr (scene >.=)) next
     (next, _) <- choiceReplace (menuControl >>> itemMenu run (cancel (), 0) inventory 0)
     preemptiveTurn next
- 
+
 turn friendMove = do
     friendSpeed <- gets (ppmnSpeed . bpFriend)
     enemySpeed <- gets (ppmnSpeed . bpEnemy)
@@ -134,7 +136,7 @@ preemptiveTurn k = do
     local (const $ Embedding id) (anchor exit)
 
 chooseEnemyMove = do
-    moves  <- gets ((map enemyMoveByName) . ppmnMoves . bpEnemy)
+    moves  <- gets (map enemyMoveByName . ppmnMoves . bpEnemy)
     let  h     = fromIntegral (length moves - 1)
     x      <- state (randomR (0, (1/2) * log (2 * h + 2)))
     let  move  = moves !! round ((1/2) * exp (2 * x :: Double) - 1)
@@ -147,32 +149,26 @@ chooseEnemyMove = do
 
 checkFaint = do
     object   <- gets actionObject
-    if ppmnHitPoints object <= 0
-        then do  scene    <- gets sceneDefault
-                 summary  <- gets sceneSummary
-                 over 0.1 $ constant (scene >.= summary >.= TB.drawConstant "")
-                 faint
-        else return ()
+    Control.Monad.when (ppmnHitPoints object <= 0) $ do  scene    <- gets sceneDefault
+                                                         summary  <- gets sceneSummary
+                                                         over 0.1 $ constant (scene >.= summary >.= TB.drawConstant "")
+                                                         faint
 
 checkBattleDone = do
     exit <- gets bpExit
     friend <- gets bpFriend
     enemy <- gets bpEnemy
-    if ppmnHitPoints enemy <= 0 
-        then do
+    Control.Monad.when (ppmnHitPoints enemy <= 0) $ do
             drawFriend <- gets sceneFirst
             drawSummary <- gets sceneFirstSummary
             let embed = embedArr ((drawFriend >.= drawSummary >.= TB.drawConstant "") >.=)
             local (const embed) $ deployNextEnemy exit
             local (const $ Embedding id) (anchor exit)
-        else return ()
-    if ppmnHitPoints friend <= 0
-        then do
+    Control.Monad.when (ppmnHitPoints friend <= 0) $ do
             drawEnemy <- gets sceneSecond
             drawSummary <- gets sceneSecondSummary
             let embed = embedArr ((drawEnemy >.= drawSummary >.= TB.drawConstant "") >.=)
             local (const embed) $ deployNextPpmn exit
-        else return ()
 
 deployNextEnemy exit = do
     ppmn <- gets bpEnemies
@@ -182,7 +178,7 @@ deployNextEnemy exit = do
     if null ppmn'
         then do
             win <- gets bpWin
-            win >> exit () 
+            win >> exit ()
         else do
             modify (\bp -> bp { bpEnemies = ppmn' })
             deployEnemy
@@ -208,7 +204,7 @@ switchToPpmn position = do
     modify (\bp -> bp { bpFriendIndex = position })
     deploy
 
-moveMenu = (((backgroundMenu 128 88 (Point2 32 16)) .) .) . (scrollMenu 4 scrollPresenter)
+moveMenu = ((backgroundMenu 128 88 (Point2 32 16) .) .) . scrollMenu 4 scrollPresenter
 
 mainMenu options cancel initial = backgroundMenu 96 48 (Point2 64 96) (boxMenu options cancel initial)
 
@@ -216,19 +212,19 @@ mainMenu options cancel initial = backgroundMenu 96 48 (Point2 64 96) (boxMenu o
 boxMenu options@[opt1, opt2, opt3, opt4] cancel k0 = attachOffsets >>> listMenu selector drawer dispatcher
   where
     (labels, dispatches) = unzip options
-    listeners = map listenSelection (zip dispatches [0 .. length dispatches - 1])
+    listeners = zipWith (curry listenSelection) dispatches [0 .. length dispatches - 1]
     selector = rangeBoxListSelector k0 2 2
     drawer = columnMenuDraw cursor (columnPresenter labels)
     dispatcher = listDispatcher (listenCancel cancel) listeners
     offsets = [ vector2 0 0, vector2 48 0, vector2 0 16, vector2 48 16 ]
-    attachOffsets = first (arr (flip (,) offsets))
+    attachOffsets = first (arr ((, offsets)))
 
-boxSelector initial down left right up = arr (mergeEvents . map curse) >>> accumHold initial 
+boxSelector initial down left right up = arr (mergeEvents . map curse) >>> accumHold initial
   where
-    curse CursorDown  = Event $ down
-    curse CursorLeft  = Event $ left
-    curse CursorRight = Event $ right
-    curse CursorUp    = Event $ up
+    curse CursorDown  = Event down
+    curse CursorLeft  = Event left
+    curse CursorRight = Event right
+    curse CursorUp    = Event up
     curse _           = NoEvent
 
 -- row major order

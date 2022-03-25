@@ -1,13 +1,13 @@
 module Field.TerrainElementExpression where
 
-import Data.Map
+import           Data.Map
 
-import Field.CardinalDirection
-import Field.MapName
-import LabelName
-import Output
-import ProseName
-import TileName
+import           Field.CardinalDirection
+import           Field.MapName
+import           LabelName
+import           Output
+import           ProseName
+import           TileName
 
 data TerrainElementExpression = Basic TileName DrawOrientation Bool
                               | Habitat Double [((LabelName, Int), Int)] TerrainElementExpression

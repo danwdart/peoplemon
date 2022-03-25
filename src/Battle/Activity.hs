@@ -1,27 +1,31 @@
-{-# LANGUAGE Arrows, FlexibleContexts, OverloadedStrings, Rank2Types, NoMonomorphismRestriction #-}
+{-# LANGUAGE Arrows                    #-}
+{-# LANGUAGE FlexibleContexts          #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE OverloadedStrings         #-}
+{-# LANGUAGE Rank2Types                #-}
 
 module Battle.Activity where
 
-import Control.Monad.Reader
-import Control.Monad.State
-import qualified Data.Map as M
-import qualified Data.Text as T
-import FRP.Yampa
+import           Control.Monad.Reader
+import           Control.Monad.State
+import qualified Data.Map               as M
+import qualified Data.Text              as T
+import           FRP.Yampa
 
-import Activity
-import Battle.ElementalEffect
-import Battle.Output
-import Battle.Parameters
-import Inventory.Parameters
-import LabelName
-import Lightarrow
-import Output
-import Ppmn.Output
-import Ppmn.Parameters
-import ProseName
-import OfflineData
-import SoundName
-import StateClass
+import           Activity
+import           Battle.ElementalEffect
+import           Battle.Output
+import           Battle.Parameters
+import           Inventory.Parameters
+import           LabelName
+import           Lightarrow
+import           OfflineData
+import           Output
+import           Ppmn.Output
+import           Ppmn.Parameters
+import           ProseName
+import           SoundName
+import           StateClass
 
 stdMoveAttempt succeeding failing = do
     narration <- stdCommentary announceProse
@@ -33,7 +37,7 @@ stdMoveAttempt succeeding failing = do
 stdMoveExecute effect report announcement = do
     effectiveness <- gets moveEffectiveness
     if effectiveness == Futile
-        then stdHesitation announcement 
+        then stdHesitation announcement
         else effect announcement
     report
 
@@ -76,7 +80,7 @@ stageEffect getPpmn putPpmn getName delta getStage putStage statName = do
         d | d < 0    -> stdCommentary (debuffProse pName statName) >>= stdHesitation
         d | d > 1    -> stdCommentary (greatBuffProse pName statName) >>= stdHesitation
         d | d > 0    -> stdCommentary (buffProse pName statName) >>= stdHesitation
-            
+
 stdEffectReport = do
     effectiveness <- gets moveEffectiveness
     if effectiveness == Basic
@@ -101,16 +105,16 @@ subjectSummaryEmbedding = do
         subSummary = statusSummary sub
         addStatic = (subSummary >.=)
     return $ embedArr (addStatic . objSummary)
-    
+
 stdDamageEffect announcement damage = do
     e1 <- subjectSummaryEmbedding
     let e2 = compEmbed (embedArr (announcement >.=)) e1
-    withEmbedding (`compEmbed` e2) (stdHPEffect (- fromIntegral damage)) 
+    withEmbedding (`compEmbed` e2) (stdHPEffect (- fromIntegral damage))
     return ()
 
 stdHealingEffect healing = do
     embedding <- subjectSummaryEmbedding
-    withEmbedding (`compEmbed` embedding) (stdHPEffect healing) 
+    withEmbedding (`compEmbed` embedding) (stdHPEffect healing)
     return ()
 
 flee = do
