@@ -1,7 +1,7 @@
 {-# LANGUAGE Arrows                    #-}
 {-# LANGUAGE FlexibleContexts          #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
+
 
 module Field.Anchor where
 

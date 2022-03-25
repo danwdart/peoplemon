@@ -8,10 +8,10 @@ import           Data.Foldable
 import           Data.List
 import qualified Data.Map                       as M
 import           Data.Maybe
-import qualified Data.Text                      as T
-import           FRP.Yampa
 import           Data.Point2
+import qualified Data.Text                      as T
 import           Data.Vector2
+import           FRP.Yampa
 
 import           Controls
 import           ControlsMaps

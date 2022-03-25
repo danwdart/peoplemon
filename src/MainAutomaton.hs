@@ -6,9 +6,9 @@ module MainAutomaton where
 import           Control.Monad.Cont
 import           Control.Monad.RWS
 import qualified Data.Map               as M
-import           FRP.Yampa              hiding (left, right)
 import           Data.Point2
 import           Data.Vector2
+import           FRP.Yampa              hiding (left, right)
 import           System.Random
 
 import           Activity
@@ -51,7 +51,7 @@ field rgen od name = runRWST k (Embedding id) fp
     fp = FieldParameters {
         fpAvatar = (protagonist (0, 4)) { cRandomGenerator = aRgen },
         fpAvatarName = name,
-        fpCounters = PpmnCounters 0 0 0 (M.empty),
+        fpCounters = PpmnCounters 0 0 0 M.empty,
         fpItems = M.empty, {-
             (Booch, booch { itemStock = 3 }),
             (LabelName.PPhone, pPhone { itemStock = 3 })

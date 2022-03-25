@@ -5,15 +5,15 @@ module Battle.Moves.EyePoke (
     eyePokeEnemy
 ) where
 
-import           Control.Monad.Reader
-import           Control.Monad.State
-import           FRP.Yampa
-import           Data.Point2
-import           Data.Vector2
 import           Activity
 import           Battle.Activity
 import           Battle.Output
 import           Battle.Parameters
+import           Control.Monad.Reader
+import           Control.Monad.State
+import           Data.Point2
+import           Data.Vector2
+import           FRP.Yampa
 import           LabelName
 import           Lightarrow
 import           OfflineData

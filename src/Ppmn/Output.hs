@@ -16,11 +16,11 @@ module Ppmn.Output (
     statusSummary
 ) where
 
-import                qualified Data.Text          as T
-import           Data.Point2
-import           Data.Vector2
+import                          Data.Point2
+import                qualified Data.Text         as T
+import                          Data.Vector2
 
-import {-# SOURCE #-}           Battle.Moves       (friendMoveByName)
+import {-# SOURCE #-}           Battle.Moves      (friendMoveByName)
 import                          Battle.Parameters
 import                          LabelName
 import                          OfflineData
@@ -70,7 +70,7 @@ drawParams ppmn position = drawWindow position (5, 5) >.= attack >.= defense >.=
 
 drawMoves ppmn position = drawWindow position (10, 5) >.= draw
   where
-    draw = foldl (>.=) nullOut $ zipWith (curry (uncurry drawMove)) movesPadded offsets
+    draw = foldl (>.=) nullOut $ zipWith (drawMove) movesPadded offsets
     moves = map (mpName . friendMoveByName) (ppmnMoves ppmn)
     movesPadded = moves ++ replicate (4 - length moves) Hyphen
     offsets = [ vector2 16 (8 + fromIntegral n * 16) | n <- [0 .. length movesPadded - 1] ]

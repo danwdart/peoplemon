@@ -1,10 +1,10 @@
 module Field.Parameters where
 
 import                qualified Data.Map             as M
+import                          Data.Point2
 import                qualified Data.Text            as T
+import                          Data.Vector2
 import                          FRP.Yampa
-import           Data.Point2
-import           Data.Vector2
 import                          System.Random
 
 import {-# SOURCE #-}           Field.Character

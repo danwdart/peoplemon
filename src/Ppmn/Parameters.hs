@@ -2,15 +2,15 @@
 
 module Ppmn.Parameters where
 
-import qualified Data.Map           as M
+import qualified Data.Map        as M
 import           Data.Maybe
 import           Data.Point2
-import qualified Data.Text          as T
+import qualified Data.Text       as T
 import           System.Random
 
 import           Battle.MoveName
 import           Controls
-import qualified LabelName          as Label
+import qualified LabelName       as Label
 import           Lightarrow
 import           OfflineData
 import           ProseName

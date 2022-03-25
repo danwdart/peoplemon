@@ -4,17 +4,17 @@
 
 module Battle.Vignette where
 
-import           Control.Monad.Reader
-import           Control.Monad.State
-import           Data.List
-import           Data.Maybe
-import           FRP.Yampa
-import           Data.Point2
-import           Data.Vector2
 import           Activity
 import           Battle.Activity
 import           Battle.Output
 import           Battle.Parameters
+import           Control.Monad.Reader
+import           Control.Monad.State
+import           Data.List
+import           Data.Maybe
+import           Data.Point2
+import           Data.Vector2
+import           FRP.Yampa
 import           Lightarrow
 import           OfflineData
 import           Output

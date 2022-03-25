@@ -113,9 +113,9 @@ hometownWokeScene2 (xA, yA) characters t0 = proc (avatar, news) -> do
         return ()
     woke = act woke0 (Control.Monad.void activity)
     activity = do  turning South
-                   Control.Monad.replicateM 8 walking
+                   replicateM_ 8 walking
                    turning East
-                   Control.Monad.replicateM (12 - round xA) walking
+                   replicateM_ (12 - round xA) walking
                    turning North
                    Control.Monad.replicateM 3 walking
     woke0 = msWoke (round xA, -6)

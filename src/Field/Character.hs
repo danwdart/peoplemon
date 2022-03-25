@@ -112,12 +112,12 @@ greeting :: (FieldParameters -> T.Text) -> CharacterActivity (Message, Terrain)
 greeting speech = do  (m, t)  <- standing
                       c0      <- get
                       react c0 t m
-  where  react c t m  = fromMaybe (pure (m, t)) (reaction c t m)
-         reaction     = stop <.> turn <.> move <.> speak
-         stop         = reactStop standing
-         turn         = reactTurn standing
-         move         = reactMove walking standing
-         speak c t m  = reactSpeak (speaking speech >> pure (Done, t)) c t m
+  where
+speak c t = reactSpeak (speaking speech >> pure (Done, t)) c t  react c t m  = fromMaybe (pure (m, t)) (reaction c t m)
+reaction     = stop <.> turn <.> move <.> speak
+stop         = reactStop standing
+turn         = reactTurn standing
+move         = reactMove walking standing
 
 
 reactingForever ::  (  Character ->

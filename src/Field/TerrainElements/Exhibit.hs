@@ -24,4 +24,4 @@ exhibit directions te = te {
     teInspect = inspection directions
 }
 
-inspection directions d = return $ maybeToEvent (M.lookup d directions Data.Functor.<&> (FieldAction . (>>= stdWait) . stdLecture . prose))
+inspection directions d = return $ maybeToEvent (M.lookup d directions Data.Functor.<&> (FieldAction . stdWait Control.Monad.<=< (stdLecture . prose)))

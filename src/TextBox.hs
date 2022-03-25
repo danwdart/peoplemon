@@ -85,7 +85,7 @@ scrolling (lines, frozen) = cont . dSwitch $ proc ((x, _), inbox) -> do
     done         <- edge   -< any isDone outbox
     returnA -< ((displayLines lines x', []), done `tag` (lines, frozen))
   where
-    scroll = (arr (.+^ (vector2 0 (-8)))) *** (after (1 / 16) () >>> arr (Done `sayUpon`))
+    scroll = arr (.+^ (vector2 0 (-8))) *** (after (1 / 16) () >>> arr (Done `sayUpon`))
 
 displayLines lines x = fst . foldM display (return (), x) lines
   where

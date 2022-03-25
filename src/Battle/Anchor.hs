@@ -4,13 +4,13 @@
 module Battle.Anchor (anchor) where
 
 import           Control.Monad.Cont
-import           Control.Monad.RWS
 import           Control.Monad.Reader
+import           Control.Monad.RWS
 import           Control.Monad.State
 import qualified Data.Map             as M
-import           FRP.Yampa
 import           Data.Point2
 import           Data.Vector2
+import           FRP.Yampa
 import           System.Random
 
 import           Activity
@@ -217,7 +217,7 @@ boxMenu options@[opt1, opt2, opt3, opt4] cancel k0 = attachOffsets >>> listMenu 
     drawer = columnMenuDraw cursor (columnPresenter labels)
     dispatcher = listDispatcher (listenCancel cancel) listeners
     offsets = [ vector2 0 0, vector2 48 0, vector2 0 16, vector2 48 16 ]
-    attachOffsets = first (arr ((, offsets)))
+    attachOffsets = first (arr (, offsets))
 
 boxSelector initial down left right up = arr (mergeEvents . map curse) >>> accumHold initial
   where

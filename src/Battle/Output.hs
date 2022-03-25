@@ -3,11 +3,11 @@
 
 module Battle.Output where
 
-import qualified Data.Text              as T
-import           Data.Point2
-import           Data.Vector2
 import           Battle.ElementalEffect
 import           Battle.Parameters
+import           Data.Point2
+import qualified Data.Text              as T
+import           Data.Vector2
 import           Inventory.Parameters
 import           OfflineData
 import           Output

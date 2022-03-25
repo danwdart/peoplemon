@@ -7,10 +7,10 @@ module Field.Scripts.FamilyHouse1F (
     ) where
 
 import           Control.Monad.State
-import qualified Data.Text               as T
-import           FRP.Yampa
 import           Data.Point2
+import qualified Data.Text               as T
 import           Data.Vector2
+import           FRP.Yampa
 
 import           Activity
 import           Field.CardinalDirection

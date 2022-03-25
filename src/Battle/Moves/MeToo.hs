@@ -8,18 +8,18 @@ module Battle.Moves.MeToo (
     meTooFriend
 ) where
 
+import           Activity
+import           Battle.Activity
+import           Battle.Output
 import           Control.Monad
 import           Control.Monad.Cont
 import           Control.Monad.Reader
 import           Control.Monad.State
-import           FRP.Yampa
-import           Data.Point2
-import           Data.Vector2
-import           Activity
-import           Battle.Activity
-import           Battle.Output
 import           Controls
 import           ControlsMaps
+import           Data.Point2
+import           Data.Vector2
+import           FRP.Yampa
 import           LabelName
 import           Lightarrow
 import           Menu

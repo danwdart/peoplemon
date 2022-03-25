@@ -3,12 +3,12 @@
 
 module Intro (intro) where
 
-import           Control.Monad.RWS
 import           Control.Monad.Reader
-import qualified Data.Text            as T
-import           FRP.Yampa
+import           Control.Monad.RWS
 import           Data.Point2
+import qualified Data.Text            as T
 import           Data.Vector2
+import           FRP.Yampa
 
 import           Activity
 import           Controls

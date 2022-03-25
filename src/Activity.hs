@@ -7,11 +7,11 @@ module Activity where
 
 import           Control.Monad.Reader
 import           Control.Monad.State
-import qualified Data.Text            as T
-import           FRP.Yampa
-import           Data.Point2
-import           Data.Vector2
 import           ControlsMaps
+import           Data.Point2
+import qualified Data.Text            as T
+import           Data.Vector2
+import           FRP.Yampa
 import           Lightarrow
 import           Message
 import           OfflineData
@@ -33,7 +33,7 @@ stdProse textbox prose = do
     let ls = T.lines text
         first = init ls
         final = last ls
-    mapM_ ((>>= arrowWait) . lift . swont . embed . textbox) first
+    mapM_ (arrowWait Control.Monad.<=< (lift . swont . embed . textbox)) first
     lift . swont $ embed (textbox final)
 
 fadeTo color duration = ask >>= \(Embedding embed) -> lift . swont $ embed fade

@@ -3,10 +3,10 @@
 
 module Inventory.Menu where
 
-import qualified Data.Text            as T
-import           FRP.Yampa
 import           Data.Point2
+import qualified Data.Text            as T
 import           Data.Vector2
+import           FRP.Yampa
 
 import           Inventory.Parameters
 import           LabelName

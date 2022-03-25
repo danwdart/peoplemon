@@ -6,13 +6,13 @@
 module Field.Menu where
 
 import           Control.Monad.Cont
-import           Control.Monad.RWS
 import           Control.Monad.Reader
+import           Control.Monad.RWS
 import qualified Data.Map             as M
-import qualified Data.Text            as T
-import           FRP.Yampa
 import           Data.Point2
+import qualified Data.Text            as T
 import           Data.Vector2
+import           FRP.Yampa
 import           System.Random
 
 import           Activity

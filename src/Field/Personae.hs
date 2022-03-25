@@ -9,7 +9,6 @@ module Field.Personae (
     personaByName
 ) where
 
-import           Field.PersonaName
 import           Field.Personae.Donald
 import           Field.Personae.Kid
 import           Field.Personae.Leaner
@@ -17,6 +16,7 @@ import           Field.Personae.Man
 import           Field.Personae.Mom
 import           Field.Personae.Protagonist
 import           Field.Personae.Woke
+import           Field.PersonaName
 
 personaByName Donald      = donald
 personaByName Kid         = kid

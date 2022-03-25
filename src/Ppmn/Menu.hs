@@ -7,9 +7,9 @@ module Ppmn.Menu (selectPpmn, personMenu, releasePpmn, reorderPpmn, personDetail
 
 import           Control.Monad.Reader
 import           Control.Monad.State
-import           FRP.Yampa
 import           Data.Point2
 import           Data.Vector2
+import           FRP.Yampa
 
 import           Activity
 import           ControlsMaps
@@ -28,8 +28,8 @@ import           TextUtil
 
 peopleMenu run cancel ppmn k0 = fullscreenMenu menu
   where
-    menu = scrollMenu 5 presenter (map (id *** run) (ppmn `zip` [0 .. length ppmn - 1])) cancel k0
-    presenter ppmn t b = (par zip (map (arr . (. fst) . (uncurry summary)) range) &&& extra) >>> arr (uncurry (flip (:)))
+    menu = scrollMenu 5 presenter (zipWith (curry (id *** run)) ppmn [0 .. length ppmn - 1]) cancel k0
+    presenter ppmn t b = (par zip (map (arr . (. fst) . uncurry summary) range) &&& extra) >>> arr (uncurry (flip (:)))
       where range = take (b - t + 1) $ drop t (ppmn `zip` rotations)
             extra = constant $ if b + 1 < length ppmn then summary (ppmn !! (b + 1)) (rotations !! (b + 1)) (Point2 8 88) else nullOut
     summary p orient x od = do

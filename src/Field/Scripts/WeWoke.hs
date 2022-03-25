@@ -191,9 +191,9 @@ localeStarters starters select woke theme t0 rg = proc (avatar, news) -> do
 
 startersDraw starters xlate = foldl' (>.=) nullOut (map drawStarter points)
   where
+drawStarter = withXlation xlate drawPhone
     drawPhone = drawSpriteOriented TurnR SpriteName.PPhone
-    drawStarter p = withXlation xlate drawPhone p
-    points = [Point2 (fromIntegral x * 16 + 6) (fromIntegral y * 16 + 2) | (_, _, (x, y)) <- starters]
+points = [Point2 (fromIntegral x * 16 + 6) (fromIntegral y * 16 + 2) | (_, _, (x, y)) <- starters]
 
 addStarter inspect (x, y) t = setElem (update elem) x y t
   where

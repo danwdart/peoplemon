@@ -82,13 +82,13 @@ loadOfflineData renderer = do
     maps <- mapM (fmap T.unpack . handle stringFail . TIO.readFile) $ fmap (resourcesPath </>) (M.fromList mapPaths)
     return OfflineData {
         odRenderer = renderer,
-        odGetSprite = maybe defaultTexture id . (`M.lookup` sprites),
-        odGetTile = maybe defaultTexture id . (`M.lookup` tiles),
-        odGetGlyph = maybe defaultTexture id . (`M.lookup` glyphs),
+        odGetSprite = fromMaybe defaultTexture . (`M.lookup` sprites),
+        odGetTile = fromMaybe defaultTexture . (`M.lookup` tiles),
+        odGetGlyph = fromMaybe defaultTexture . (`M.lookup` glyphs),
         odGetSound = fromJust . (`M.lookup` sounds),
         odGetMusic = fromJust . (`M.lookup` music),
-        odGetLabel = maybe defaultString id . (`M.lookup` labels),
-        odGetProse = maybe defaultString id . (`M.lookup` prose),
+        odGetLabel = fromMaybe defaultString . (`M.lookup` labels),
+        odGetProse = fromMaybe defaultString . (`M.lookup` prose),
         odGetTerrain = maybe Field.Terrain.empty read . (`M.lookup` maps)
     }
 

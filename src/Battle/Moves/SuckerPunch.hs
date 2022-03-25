@@ -8,9 +8,9 @@ module Battle.Moves.SuckerPunch (
 
 import           Control.Monad.Reader
 import           Control.Monad.State
-import           FRP.Yampa
 import           Data.Point2
 import           Data.Vector2
+import           FRP.Yampa
 
 import           Activity
 import           Battle.Activity
