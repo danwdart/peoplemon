@@ -28,7 +28,7 @@ import           TextUtil
 
 peopleMenu run cancel ppmn k0 = fullscreenMenu menu
   where
-    menu = scrollMenu 5 presenter (zipWith (curry (id *** run)) ppmn [0 .. length ppmn - 1]) cancel k0
+    menu = scrollMenu 5 presenter (zipWith (curry (second run)) ppmn [0 .. length ppmn - 1]) cancel k0
     presenter ppmn t b = (par zip (map (arr . (. fst) . uncurry summary) range) &&& extra) >>> arr (uncurry (flip (:)))
       where range = take (b - t + 1) $ drop t (ppmn `zip` rotations)
             extra = constant $ if b + 1 < length ppmn then summary (ppmn !! (b + 1)) (rotations !! (b + 1)) (Point2 8 88) else nullOut

@@ -70,7 +70,7 @@ drawParams ppmn position = drawWindow position (5, 5) >.= attack >.= defense >.=
 
 drawMoves ppmn position = drawWindow position (10, 5) >.= draw
   where
-    draw = foldl (>.=) nullOut $ zipWith (drawMove) movesPadded offsets
+    draw = foldl (>.=) nullOut $ zipWith drawMove movesPadded offsets
     moves = map (mpName . friendMoveByName) (ppmnMoves ppmn)
     movesPadded = moves ++ replicate (4 - length moves) Hyphen
     offsets = [ vector2 16 (8 + fromIntegral n * 16) | n <- [0 .. length movesPadded - 1] ]

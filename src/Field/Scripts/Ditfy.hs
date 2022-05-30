@@ -225,7 +225,7 @@ uniqueCharacters rg0 = (rgN, zipWith (curry apply) acts (zip indices rgs))
          nextRg _ (r, rs)  = let (r1, r2) = split r in (r2, r1:rs)
          (rgN, rgs)        = foldr nextRg (rg0, []) acts
 
-itemHolders = zipWith (($)) items [1 .. length items]
+itemHolders = zipWith ($) items [1 .. length items]
 
 items = [ holdItem booch (6, -18) nullOut False ]
 
